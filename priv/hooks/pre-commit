@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "==> Running mix format --check-formatted"
+mix format --check-formatted
+echo "    ✓ Formatting OK"
+
+echo "==> Running mix credo --strict"
+mix credo --strict
+echo "    ✓ Credo OK"
+
+echo "==> Running mix dialyzer"
+mix dialyzer
+echo "    ✓ Dialyzer OK"

@@ -9,7 +9,11 @@ defmodule Claptrap.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
-      deps: deps()
+      deps: deps(),
+      dialyzer: [
+        plt_file: {:no_warn, "priv/plts/project.plt"},
+        plt_add_apps: [:mix, :ex_unit]
+      ]
     ]
   end
 
@@ -42,19 +46,21 @@ defmodule Claptrap.MixProject do
       {:phoenix_pubsub, "~> 2.1"},
 
       # Dev/test
-      {:credo, "~> 1.7", only: [:dev, :test], runtime: false}
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false}
     ]
   end
 
   defp aliases do
     [
-      setup: ["deps.get", "ecto.setup"],
+      setup: ["cmd git config core.hooksPath priv/hooks", "deps.get", "ecto.setup"],
       "ecto.setup": ["ecto.create", "ecto.migrate"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       check: [
         "format --check-formatted",
         "compile --warnings-as-errors",
         "credo --strict",
+        "dialyzer",
         "test"
       ]
     ]
