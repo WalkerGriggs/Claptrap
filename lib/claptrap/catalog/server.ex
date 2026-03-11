@@ -4,11 +4,12 @@ defmodule Claptrap.Catalog.Server do
   require Logger
 
   def start_link(init_arg) do
-    GenServer.start_link(__MODULE__, init_arg, name: __MODULE__)
+    name = Keyword.get(init_arg, :name, __MODULE__)
+    GenServer.start_link(__MODULE__, init_arg, name: name)
   end
 
-  def list_sources do
-    GenServer.call(__MODULE__, :list_sources)
+  def list_sources(server \\ __MODULE__) do
+    GenServer.call(server, :list_sources)
   end
 
   @impl true

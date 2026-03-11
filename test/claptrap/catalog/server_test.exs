@@ -3,16 +3,21 @@ defmodule Claptrap.Catalog.ServerTest do
 
   alias Claptrap.Catalog.Server
 
-  setup do
-    {:ok, pid} = start_supervised(Server)
-    %{pid: pid}
+  setup context do
+    child_spec = %{
+      id: context.test,
+      start: {Server, :start_link, [[name: context.test]]}
+    }
+
+    pid = start_supervised!(child_spec)
+    %{pid: pid, server: context.test}
   end
 
   test "starts successfully", %{pid: pid} do
     assert Process.alive?(pid)
   end
 
-  test "list_sources/0 returns empty list" do
-    assert Server.list_sources() == []
+  test "list_sources/1 returns empty list", %{server: server} do
+    assert Server.list_sources(server) == []
   end
 end
