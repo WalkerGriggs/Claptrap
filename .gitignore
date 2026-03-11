@@ -1,0 +1,12 @@
+/_build/
+/cover/
+/deps/
+/doc/
+/tmp/
+erl_crash.dump
+*.ez
+claptrap-*.tar
+/.fetch
+*.beam
+/config/*.secret.exs
+.elixir_ls/
