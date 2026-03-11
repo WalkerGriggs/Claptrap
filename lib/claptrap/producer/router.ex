@@ -17,4 +17,10 @@ defmodule Claptrap.Producer.Router do
     Logger.debug("Router received entries (stub - no sinks yet, M4)")
     {:noreply, state}
   end
+
+  @impl true
+  def handle_info(msg, state) do
+    Logger.warning("Producer.Router received unexpected message: #{inspect(msg)}")
+    {:noreply, state}
+  end
 end

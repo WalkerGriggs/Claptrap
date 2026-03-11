@@ -14,6 +14,7 @@ defmodule Claptrap.Producer.RouterTest do
     test "handles entries_ingested messages" do
       pid = Process.whereis(Claptrap.Producer.Router)
       send(pid, {:entries_ingested, "source-1", []})
+      :sys.get_state(pid)
       assert Process.alive?(pid)
     end
   end
