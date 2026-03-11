@@ -19,7 +19,7 @@ defmodule Claptrap.Registry do
     Registry.whereis_name({__MODULE__, {type, id}})
   end
 
-  def register(type, id, pid) do
-    Registry.register_name({__MODULE__, {type, id}}, pid)
+  def register(type, id) do
+    Registry.register_name({__MODULE__, {type, id}}, self())
   end
 end
