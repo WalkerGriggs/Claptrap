@@ -37,6 +37,17 @@ Claptrap is built from five subsystems:
 4. **API**: REST endpoints for external access
 5. **MCP**: Model Context Protocol server for AI agent integration
 
+## Getting Started
+
+**Prerequisites**: Elixir ~> 1.17, Erlang/OTP 28+, PostgreSQL on port 5432.
+
+```bash
+mix setup              # fetch deps, create database, run migrations
+mix run --no-halt      # start the server on http://localhost:4000
+```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for testing, formatting, linting, and the full development workflow.
+
 ## Documentation
 
 - [Glossary](docs/glossary.md) - Core terminology and concepts
