@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd \"$FACTORY_PROJECT_DIR\" && mix format 2>/dev/null || true"
+          }
+        ]
+      }
+    ]
+  }
+}
