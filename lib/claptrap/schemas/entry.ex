@@ -7,6 +7,8 @@ defmodule Claptrap.Schemas.Entry do
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
 
+  @type t :: %__MODULE__{}
+
   schema "entries" do
     field :external_id, :string
     field :title, :string

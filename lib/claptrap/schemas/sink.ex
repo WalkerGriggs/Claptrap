@@ -7,6 +7,8 @@ defmodule Claptrap.Schemas.Sink do
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
 
+  @type t :: %__MODULE__{}
+
   schema "sinks" do
     field :type, :string
     field :name, :string

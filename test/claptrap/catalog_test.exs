@@ -344,6 +344,116 @@ defmodule Claptrap.CatalogTest do
     end
   end
 
+  describe "entries_for_sink/2" do
+    test "returns entries matching sink subscriptions" do
+      {:ok, source} = Catalog.create_source(@source_attrs)
+      {:ok, sink} = Catalog.create_sink(%{type: "rss_feed", name: "Feed", config: %{"description" => "d"}})
+      {:ok, _sub} = Catalog.create_subscription(%{sink_id: sink.id, tags: ["elixir"]})
+
+      {:ok, matching} =
+        Catalog.create_entry(%{
+          source_id: source.id,
+          external_id: "match",
+          title: "Match",
+          status: "unread",
+          tags: ["elixir"]
+        })
+
+      {:ok, _non_matching} =
+        Catalog.create_entry(%{
+          source_id: source.id,
+          external_id: "no-match",
+          title: "No Match",
+          status: "unread",
+          tags: ["rust"]
+        })
+
+      results = Catalog.entries_for_sink(sink.id)
+      assert length(results) == 1
+      assert hd(results).id == matching.id
+    end
+
+    test "returns entries ordered by inserted_at desc" do
+      {:ok, source} = Catalog.create_source(@source_attrs)
+      {:ok, sink} = Catalog.create_sink(%{type: "rss_feed", name: "Feed", config: %{"description" => "d"}})
+      {:ok, _sub} = Catalog.create_subscription(%{sink_id: sink.id, tags: ["elixir"]})
+
+      {:ok, e1} =
+        Catalog.create_entry(%{
+          source_id: source.id,
+          external_id: "first",
+          title: "First",
+          status: "unread",
+          tags: ["elixir"]
+        })
+
+      # Force distinct timestamps so ordering is
+      # deterministic
+      import Ecto.Query
+
+      from(e in "entries", where: e.id == type(^e1.id, :binary_id))
+      |> Repo.update_all(set: [inserted_at: ~U[2026-01-01 00:00:00.000000Z]])
+
+      {:ok, e2} =
+        Catalog.create_entry(%{
+          source_id: source.id,
+          external_id: "second",
+          title: "Second",
+          status: "unread",
+          tags: ["elixir"]
+        })
+
+      from(e in "entries", where: e.id == type(^e2.id, :binary_id))
+      |> Repo.update_all(set: [inserted_at: ~U[2026-01-02 00:00:00.000000Z]])
+
+      results = Catalog.entries_for_sink(sink.id)
+      assert length(results) == 2
+      # Newer entry (e2) should come first
+      ids = Enum.map(results, & &1.id)
+      assert Enum.find_index(ids, &(&1 == e2.id)) < Enum.find_index(ids, &(&1 == e1.id))
+    end
+
+    test "respects limit option" do
+      {:ok, source} = Catalog.create_source(@source_attrs)
+      {:ok, sink} = Catalog.create_sink(%{type: "rss_feed", name: "Feed", config: %{"description" => "d"}})
+      {:ok, _sub} = Catalog.create_subscription(%{sink_id: sink.id, tags: ["elixir"]})
+
+      for i <- 1..5 do
+        Catalog.create_entry(%{
+          source_id: source.id,
+          external_id: "e#{i}",
+          title: "Entry #{i}",
+          status: "unread",
+          tags: ["elixir"]
+        })
+      end
+
+      assert length(Catalog.entries_for_sink(sink.id, limit: 3)) == 3
+    end
+
+    test "returns empty list when no subscriptions match" do
+      {:ok, source} = Catalog.create_source(@source_attrs)
+      {:ok, sink} = Catalog.create_sink(%{type: "rss_feed", name: "Feed", config: %{"description" => "d"}})
+      {:ok, _sub} = Catalog.create_subscription(%{sink_id: sink.id, tags: ["elixir"]})
+
+      {:ok, _entry} =
+        Catalog.create_entry(%{
+          source_id: source.id,
+          external_id: "rust-post",
+          title: "Rust Post",
+          status: "unread",
+          tags: ["rust"]
+        })
+
+      assert [] = Catalog.entries_for_sink(sink.id)
+    end
+
+    test "returns empty list when sink has no subscriptions" do
+      {:ok, sink} = Catalog.create_sink(%{type: "rss_feed", name: "Feed", config: %{"description" => "d"}})
+      assert [] = Catalog.entries_for_sink(sink.id)
+    end
+  end
+
   defp errors_on(changeset) do
     Ecto.Changeset.traverse_errors(changeset, fn {message, opts} ->
       Regex.replace(~r"%{(\w+)}", message, fn _, key ->

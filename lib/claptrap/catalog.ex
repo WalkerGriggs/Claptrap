@@ -100,6 +100,26 @@ defmodule Claptrap.Catalog do
     |> Repo.update()
   end
 
+  def entries_for_sink(sink_id, opts \\ []) do
+    limit = opts[:limit] || 50
+
+    entry_ids =
+      from(e in Entry,
+        join: s in Subscription,
+        on: fragment("? && ?", e.tags, s.tags),
+        where: s.sink_id == ^sink_id,
+        distinct: e.id,
+        select: e.id
+      )
+
+    from(e in Entry,
+      where: e.id in subquery(entry_ids),
+      order_by: [desc: e.inserted_at, desc: e.id],
+      limit: ^limit
+    )
+    |> Repo.all()
+  end
+
   # Private helpers
 
   defp maybe_filter_enabled(query, nil), do: query

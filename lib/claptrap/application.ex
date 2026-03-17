@@ -8,6 +8,7 @@ defmodule Claptrap.Application do
       Claptrap.Repo,
       {Registry, keys: :unique, name: Claptrap.Registry},
       {Phoenix.PubSub, name: Claptrap.PubSub},
+      Claptrap.Producer.Supervisor,
       {Bandit, plug: Claptrap.API.Router, port: port()}
     ]
 
