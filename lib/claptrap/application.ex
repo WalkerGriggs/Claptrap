@@ -4,15 +4,25 @@ defmodule Claptrap.Application do
 
   @impl true
   def start(_type, _args) do
-    children = [
-      Claptrap.Repo,
-      {Registry, keys: :unique, name: Claptrap.Registry},
-      {Phoenix.PubSub, name: Claptrap.PubSub},
-      {Bandit, plug: Claptrap.API.Router, port: port()}
-    ]
+    children =
+      [
+        Claptrap.Repo,
+        {Registry, keys: :unique, name: Claptrap.Registry},
+        {Phoenix.PubSub, name: Claptrap.PubSub}
+      ]
+      |> maybe_add_consumer()
+      |> Kernel.++([{Bandit, plug: Claptrap.API.Router, port: port()}])
 
     opts = [strategy: :one_for_one, name: Claptrap.Supervisor]
     Supervisor.start_link(children, opts)
+  end
+
+  defp maybe_add_consumer(children) do
+    if Application.get_env(:claptrap, :start_consumer, true) do
+      children ++ [Claptrap.Consumer.Supervisor]
+    else
+      children
+    end
   end
 
   defp port do

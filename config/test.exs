@@ -8,3 +8,5 @@ config :claptrap, Claptrap.Repo,
   pool: Ecto.Adapters.SQL.Sandbox
 
 config :logger, level: :warning
+
+config :claptrap, start_consumer: false
