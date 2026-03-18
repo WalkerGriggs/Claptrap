@@ -273,12 +273,13 @@ defmodule Claptrap.CatalogTest do
       {:ok, source} = Catalog.create_source(@source_attrs)
 
       for i <- 1..5 do
-        Catalog.create_entry(%{
-          source_id: source.id,
-          external_id: "e#{i}",
-          title: "T#{i}",
-          status: "unread"
-        })
+        {:ok, _} =
+          Catalog.create_entry(%{
+            source_id: source.id,
+            external_id: "e#{i}",
+            title: "T#{i}",
+            status: "unread"
+          })
       end
 
       assert length(Catalog.list_entries(limit: 2)) == 2
@@ -341,6 +342,124 @@ defmodule Claptrap.CatalogTest do
 
       assert {:ok, updated} = Catalog.update_entry(entry, %{status: "read"})
       assert updated.status == "read"
+    end
+  end
+
+  # entries_for_sink
+
+  describe "entries_for_sink/2" do
+    test "returns entries matching a sink's subscriptions by tag overlap" do
+      {:ok, source} = Catalog.create_source(@source_attrs)
+      {:ok, sink} = Catalog.create_sink(@sink_attrs)
+      {:ok, _sub} = Catalog.create_subscription(%{sink_id: sink.id, tags: ["elixir"]})
+
+      {:ok, matching} =
+        Catalog.create_entry(%{
+          source_id: source.id,
+          external_id: "e1",
+          title: "Match",
+          status: "unread",
+          tags: ["elixir", "otp"]
+        })
+
+      {:ok, _non_matching} =
+        Catalog.create_entry(%{
+          source_id: source.id,
+          external_id: "e2",
+          title: "No Match",
+          status: "unread",
+          tags: ["python"]
+        })
+
+      results = Catalog.entries_for_sink(sink.id)
+      assert length(results) == 1
+      assert hd(results).id == matching.id
+    end
+
+    test "respects limit option" do
+      {:ok, source} = Catalog.create_source(@source_attrs)
+      {:ok, sink} = Catalog.create_sink(@sink_attrs)
+      {:ok, _sub} = Catalog.create_subscription(%{sink_id: sink.id, tags: ["elixir"]})
+
+      for i <- 1..5 do
+        {:ok, _} =
+          Catalog.create_entry(%{
+            source_id: source.id,
+            external_id: "e#{i}",
+            title: "Entry #{i}",
+            status: "unread",
+            tags: ["elixir"]
+          })
+      end
+
+      results = Catalog.entries_for_sink(sink.id, limit: 2)
+      assert length(results) == 2
+    end
+
+    test "returns empty list when no entries match" do
+      {:ok, source} = Catalog.create_source(@source_attrs)
+      {:ok, sink} = Catalog.create_sink(@sink_attrs)
+      {:ok, _sub} = Catalog.create_subscription(%{sink_id: sink.id, tags: ["rust"]})
+
+      {:ok, _} =
+        Catalog.create_entry(%{
+          source_id: source.id,
+          external_id: "e1",
+          title: "Entry",
+          status: "unread",
+          tags: ["python"]
+        })
+
+      assert [] = Catalog.entries_for_sink(sink.id)
+    end
+
+    test "orders by inserted_at desc" do
+      {:ok, source} = Catalog.create_source(@source_attrs)
+      {:ok, sink} = Catalog.create_sink(@sink_attrs)
+      {:ok, _sub} = Catalog.create_subscription(%{sink_id: sink.id, tags: ["elixir"]})
+
+      {:ok, _old} =
+        Catalog.create_entry(%{
+          source_id: source.id,
+          external_id: "old",
+          title: "Old",
+          status: "unread",
+          tags: ["elixir"]
+        })
+
+      Process.sleep(10)
+
+      {:ok, _new} =
+        Catalog.create_entry(%{
+          source_id: source.id,
+          external_id: "new",
+          title: "New",
+          status: "unread",
+          tags: ["elixir"]
+        })
+
+      results = Catalog.entries_for_sink(sink.id)
+      assert hd(results).title == "New"
+    end
+
+    test "deduplicates entries matched by multiple subscriptions" do
+      {:ok, source} = Catalog.create_source(@source_attrs)
+      {:ok, sink} = Catalog.create_sink(@sink_attrs)
+      {:ok, _sub1} = Catalog.create_subscription(%{sink_id: sink.id, tags: ["elixir"]})
+      {:ok, _sub2} = Catalog.create_subscription(%{sink_id: sink.id, tags: ["otp"]})
+
+      {:ok, entry} =
+        Catalog.create_entry(%{
+          source_id: source.id,
+          external_id: "e1",
+          title: "Both Tags",
+          status: "unread",
+          tags: ["elixir", "otp"]
+        })
+
+      results = Catalog.entries_for_sink(sink.id)
+      assert [only] = results
+      assert only.id == entry.id
     end
   end
 
