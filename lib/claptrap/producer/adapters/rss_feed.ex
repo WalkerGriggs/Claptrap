@@ -1,0 +1,105 @@
+defmodule Claptrap.Producer.Adapters.RssFeed do
+  @moduledoc "RSS 2.0 feed materialization adapter. Stores rendered XML in ETS."
+
+  @behaviour Claptrap.Producer.Adapter
+
+  alias Claptrap.Catalog
+  alias Claptrap.Schemas.{Entry, Sink}
+
+  @ets_table :claptrap_rss_feeds
+  @default_max_entries 50
+
+  @impl true
+  def mode, do: :pull
+
+  @impl true
+  def push(_sink, _entries), do: {:error, :not_supported}
+
+  @impl true
+  def materialize(%Sink{} = sink, _entries) do
+    max = sink.config["max_entries"] || @default_max_entries
+    entries = Catalog.entries_for_sink(sink.id, limit: max)
+    xml = build_xml(sink, entries)
+    :ets.insert(@ets_table, {sink.id, {xml, DateTime.utc_now()}})
+    :ok
+  end
+
+  @impl true
+  def validate_config(config) when is_map(config) do
+    cond do
+      not Map.has_key?(config, "description") ->
+        {:error, "missing required key: description"}
+
+      Map.has_key?(config, "max_entries") and
+          (not is_integer(config["max_entries"]) or config["max_entries"] < 1) ->
+        {:error, "max_entries must be a positive integer"}
+
+      true ->
+        :ok
+    end
+  end
+
+  def validate_config(_), do: {:error, "config must be a map"}
+
+  def get_feed(sink_id) do
+    case :ets.lookup(@ets_table, sink_id) do
+      [{^sink_id, {xml, updated_at}}] -> {:ok, xml, updated_at}
+      [] -> {:error, :not_found}
+    end
+  end
+
+  defp build_xml(%Sink{} = sink, entries) do
+    items = Enum.map_join(entries, "\n", &build_item/1)
+
+    """
+    <?xml version="1.0" encoding="UTF-8"?>
+    <rss version="2.0">
+      <channel>
+        <title>#{escape(sink.name)}</title>
+        <description>#{escape(sink.config["description"] || "")}</description>
+        <lastBuildDate>#{rfc2822(DateTime.utc_now())}</lastBuildDate>
+    #{items}
+      </channel>
+    </rss>
+    """
+  end
+
+  defp build_item(%Entry{} = entry) do
+    """
+        <item>
+          <title>#{escape(entry.title || "")}</title>
+          <link>#{escape(entry.url || "")}</link>
+          <description>#{escape(entry.summary || "")}</description>
+          <author>#{escape(entry.author || "")}</author>
+          <pubDate>#{rfc2822(entry.published_at)}</pubDate>
+          <guid isPermaLink="false">#{entry.id}</guid>
+        </item>\
+    """
+  end
+
+  defp escape(nil), do: ""
+
+  defp escape(text) when is_binary(text) do
+    text
+    |> String.replace("&", "&amp;")
+    |> String.replace("<", "&lt;")
+    |> String.replace(">", "&gt;")
+    |> String.replace("\"", "&quot;")
+    |> String.replace("'", "&apos;")
+  end
+
+  @day_names ~w(Mon Tue Wed Thu Fri Sat Sun)
+  @month_names ~w(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec)
+
+  defp rfc2822(nil), do: ""
+
+  defp rfc2822(%DateTime{} = dt) do
+    day_name = Enum.at(@day_names, Date.day_of_week(dt) - 1)
+    month_name = Enum.at(@month_names, dt.month - 1)
+
+    "#{day_name}, #{String.pad_leading(to_string(dt.day), 2, "0")} #{month_name} #{dt.year} " <>
+      "#{String.pad_leading(to_string(dt.hour), 2, "0")}:" <>
+      "#{String.pad_leading(to_string(dt.minute), 2, "0")}:" <>
+      "#{String.pad_leading(to_string(dt.second), 2, "0")} +0000"
+  end
+end

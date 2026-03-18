@@ -8,6 +8,8 @@ defmodule Claptrap.Producer.Supervisor do
 
   @impl true
   def init(_init_arg) do
+    :ets.new(:claptrap_rss_feeds, [:named_table, :public, :set, read_concurrency: true])
+
     children = [
       {DynamicSupervisor, strategy: :one_for_one, name: Claptrap.Producer.WorkerSupervisor},
       Claptrap.Producer.Router
