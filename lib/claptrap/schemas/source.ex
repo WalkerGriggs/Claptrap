@@ -7,6 +7,17 @@ defmodule Claptrap.Schemas.Source do
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
 
+  @type t :: %__MODULE__{
+          id: Ecto.UUID.t() | nil,
+          type: String.t() | nil,
+          name: String.t() | nil,
+          config: map() | nil,
+          credentials: map() | nil,
+          enabled: boolean() | nil,
+          last_consumed_at: DateTime.t() | nil,
+          tags: [String.t()] | nil
+        }
+
   schema "sources" do
     field :type, :string
     field :name, :string
