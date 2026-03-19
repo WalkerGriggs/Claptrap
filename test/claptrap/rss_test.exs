@@ -6,49 +6,6 @@ defmodule Claptrap.RSSTest do
 
   @feed %Feed{title: "Test", link: "https://example.com", description: "A test feed"}
 
-  describe "module existence and function exports" do
-    setup do
-      Code.ensure_loaded!(RSS)
-      :ok
-    end
-
-    test "parse/1 is exported" do
-      assert function_exported?(RSS, :parse, 1)
-    end
-
-    test "parse/2 is exported" do
-      assert function_exported?(RSS, :parse, 2)
-    end
-
-    test "parse!/1 is exported" do
-      assert function_exported?(RSS, :parse!, 1)
-    end
-
-    test "parse!/2 is exported" do
-      assert function_exported?(RSS, :parse!, 2)
-    end
-
-    test "generate/1 is exported" do
-      assert function_exported?(RSS, :generate, 1)
-    end
-
-    test "generate/2 is exported" do
-      assert function_exported?(RSS, :generate, 2)
-    end
-
-    test "generate!/1 is exported" do
-      assert function_exported?(RSS, :generate!, 1)
-    end
-
-    test "generate!/2 is exported" do
-      assert function_exported?(RSS, :generate!, 2)
-    end
-
-    test "validate/1 is exported" do
-      assert function_exported?(RSS, :validate, 1)
-    end
-  end
-
   describe "parse!/2" do
     test "raises ParseError when given invalid input" do
       assert_raise ParseError, fn ->
