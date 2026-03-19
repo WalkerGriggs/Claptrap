@@ -1,10 +1,10 @@
 defmodule Claptrap.RSS.Generator do
   @moduledoc false
 
-  alias Claptrap.RSS.{Feed, GenerateError}
+  alias Claptrap.RSS.GenerateError
 
-  @spec generate(Feed.t(), keyword()) :: {:ok, binary()} | {:error, GenerateError.t()}
+  @spec generate(term(), keyword()) :: {:error, GenerateError.t()}
   def generate(_feed, _opts \\ []) do
-    Process.get({__MODULE__, :impl}, {:error, %GenerateError{reason: :not_implemented, message: "not implemented"}})
+    {:error, %GenerateError{reason: :not_implemented, message: "not implemented", path: []}}
   end
 end

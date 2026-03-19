@@ -1,6 +1,20 @@
 defmodule Claptrap.RSS do
   @moduledoc false
 
+  # Dialyzer warnings suppressed because Parser, Generator, and Validator are
+  # stubs that only return errors. Remove when real implementations land.
+  @dialyzer [
+    {:nowarn_function, parse: 1},
+    {:nowarn_function, parse: 2},
+    {:nowarn_function, parse!: 1},
+    {:nowarn_function, parse!: 2},
+    {:nowarn_function, generate: 1},
+    {:nowarn_function, generate: 2},
+    {:nowarn_function, generate!: 1},
+    {:nowarn_function, generate!: 2},
+    {:nowarn_function, validate: 1}
+  ]
+
   alias Claptrap.RSS.{Feed, Generator, Parser, Validator}
   alias Claptrap.RSS.{GenerateError, ParseError, ValidationError}
 
@@ -11,7 +25,11 @@ defmodule Claptrap.RSS do
 
   @spec parse!(binary(), keyword()) :: Feed.t()
   def parse!(xml, opts \\ []) do
-    xml |> parse(opts) |> unwrap!()
+    parse(xml, opts)
+    |> then(fn
+      {:ok, feed} -> feed
+      {:error, error} -> raise error
+    end)
   end
 
   @spec generate(Feed.t(), keyword()) :: {:ok, binary()} | {:error, GenerateError.t()}
@@ -21,15 +39,15 @@ defmodule Claptrap.RSS do
 
   @spec generate!(Feed.t(), keyword()) :: binary()
   def generate!(feed, opts \\ []) do
-    feed |> generate(opts) |> unwrap!()
+    generate(feed, opts)
+    |> then(fn
+      {:ok, xml} -> xml
+      {:error, error} -> raise error
+    end)
   end
 
   @spec validate(Feed.t()) :: :ok | {:error, [ValidationError.t()]}
   def validate(feed) do
     Validator.validate(feed)
   end
-
-  @spec unwrap!({:ok, value} | {:error, Exception.t()}) :: value when value: var
-  defp unwrap!({:ok, value}), do: value
-  defp unwrap!({:error, error}), do: raise(error)
 end
