@@ -24,7 +24,7 @@ defmodule Claptrap.MixProject do
   def application do
     [
       mod: {Claptrap.Application, []},
-      extra_applications: [:logger]
+      extra_applications: [:logger, :xmerl]
     ]
   end
 
