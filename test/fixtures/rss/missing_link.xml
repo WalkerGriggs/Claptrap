@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Feed Without Link</title>
+    <description>This feed is missing the link element entirely</description>
+    <item>
+      <title>Post One</title>
+      <description>A post in a feed that has no channel link.</description>
+    </item>
+    <item>
+      <title>Post Two</title>
+      <description>Another post without a link.</description>
+    </item>
+  </channel>
+</rss>

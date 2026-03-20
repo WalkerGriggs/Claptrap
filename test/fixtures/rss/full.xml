@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Full Example Feed</title>
+    <link>https://example.com</link>
+    <description>A feed with every optional channel and item element populated</description>
+    <language>en-us</language>
+    <copyright>Copyright 2024 Example Corp</copyright>
+    <managingEditor>editor@example.com (Jane Editor)</managingEditor>
+    <webMaster>webmaster@example.com (Bob Admin)</webMaster>
+    <pubDate>Sat, 01 Jun 2024 10:00:00 +0000</pubDate>
+    <lastBuildDate>Sat, 01 Jun 2024 12:30:00 +0000</lastBuildDate>
+    <generator>FullFeedGenerator 2.0</generator>
+    <docs>https://www.rssboard.org/rss-specification</docs>
+    <ttl>60</ttl>
+    <rating>(PICS-1.1 "http://www.classify.org/safesurf/" 1 r (SS~~000 1))</rating>
+    <image>
+      <url>https://example.com/logo.png</url>
+      <title>Example Logo</title>
+      <link>https://example.com</link>
+      <width>144</width>
+      <height>88</height>
+      <description>The Example Corp logo</description>
+    </image>
+    <textInput>
+      <title>Search</title>
+      <description>Search this feed</description>
+      <name>q</name>
+      <link>https://example.com/search</link>
+    </textInput>
+    <cloud domain="rpc.example.com" port="80" path="/RPC2"
+           registerProcedure="myCloud.rssPleaseNotify" protocol="xml-rpc"/>
+    <category>Technology</category>
+    <category domain="https://example.com/cats">Elixir</category>
+    <category domain="https://example.com/cats">Programming</category>
+    <skipHours>
+      <hour>0</hour>
+      <hour>1</hour>
+      <hour>2</hour>
+      <hour>3</hour>
+    </skipHours>
+    <skipDays>
+      <day>Saturday</day>
+      <day>Sunday</day>
+    </skipDays>
+    <item>
+      <title>First Post: Getting Started</title>
+      <link>https://example.com/posts/first</link>
+      <description>An introduction to our new blog and what to expect.</description>
+      <author>author@example.com (Alice Writer)</author>
+      <comments>https://example.com/posts/first#comments</comments>
+      <pubDate>Fri, 31 May 2024 08:00:00 +0000</pubDate>
+      <enclosure url="https://example.com/media/intro.mp3" length="5120000" type="audio/mpeg"/>
+      <guid isPermaLink="true">https://example.com/posts/first</guid>
+      <source url="https://other.com/feed.xml">Other Feed</source>
+      <category>Introductions</category>
+      <category domain="https://example.com/cats">Meta</category>
+      <dc:creator>Alice Writer</dc:creator>
+    </item>
+    <item>
+      <title>Second Post: Deep Dive</title>
+      <link>https://example.com/posts/second</link>
+      <description>A deeper look at the technical details behind Example Corp.</description>
+      <author>bob@example.com (Bob Developer)</author>
+      <comments>https://example.com/posts/second#comments</comments>
+      <pubDate>Sat, 01 Jun 2024 09:00:00 +0000</pubDate>
+      <guid isPermaLink="false">urn:uuid:a1b2c3d4-e5f6-7890-abcd-ef1234567890</guid>
+      <category>Technical</category>
+    </item>
+  </channel>
+</rss>
