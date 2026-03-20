@@ -1,5 +1,9 @@
 import Config
 
+if db_host = System.get_env("DATABASE_HOSTNAME") do
+  config :claptrap, Claptrap.Repo, hostname: db_host
+end
+
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||
