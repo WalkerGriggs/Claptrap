@@ -128,7 +128,7 @@ jobs:
 
       - run: mix deps.get
       - run: mix ecto.setup
-      - run: mix coveralls.json
+      - run: mix coveralls.json --include integration
       - uses: codecov/codecov-action@v5
         with:
           files: cover/excoveralls.json
