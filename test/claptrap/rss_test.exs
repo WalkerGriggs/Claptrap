@@ -35,8 +35,13 @@ defmodule Claptrap.RSSTest do
   end
 
   describe "validate/1" do
-    test "returns error tuple for stubbed input" do
-      assert {:error, errors} = RSS.validate(@feed)
+    test "returns :ok for a valid feed" do
+      assert :ok = RSS.validate(@feed)
+    end
+
+    test "returns {:error, errors} for an invalid feed" do
+      bad_feed = %{@feed | title: ""}
+      assert {:error, errors} = RSS.validate(bad_feed)
       assert is_list(errors)
     end
   end
