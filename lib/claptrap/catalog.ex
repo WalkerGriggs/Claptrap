@@ -68,6 +68,8 @@ defmodule Claptrap.Catalog do
     |> Repo.insert()
   end
 
+  def get_subscription!(id), do: Repo.get!(Subscription, id)
+
   def delete_subscription(%Subscription{} = subscription), do: Repo.delete(subscription)
 
   def subscriptions_for_tags(tags) when is_list(tags) do

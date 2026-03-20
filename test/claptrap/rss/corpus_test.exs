@@ -911,6 +911,10 @@ defmodule Claptrap.RSS.CorpusTest do
   # Roundtrip tests
   # ---------------------------------------------------------------------------
 
+  # Fixtures that are intentionally invalid (e.g. missing required elements)
+  # and are expected to fail validation during generation.
+  @known_invalid_fixtures ["missing_link.xml"]
+
   describe "corpus: roundtrip parse -> generate -> reparse" do
     for file <- File.ls!(@fixtures_dir), Path.extname(file) == ".xml" do
       @tag fixture: file
@@ -923,9 +927,13 @@ defmodule Claptrap.RSS.CorpusTest do
             assert {:ok, reparsed} = Claptrap.RSS.parse(regenerated_xml)
             assert reparsed == feed
 
-          {:error, %Claptrap.RSS.GenerateError{reason: reason}}
-          when reason in [:not_implemented, :validation_failed] ->
+          {:error, %Claptrap.RSS.GenerateError{reason: :not_implemented}} ->
             :ok
+
+          {:error, %Claptrap.RSS.GenerateError{reason: :validation_failed}} ->
+            assert unquote(file) in @known_invalid_fixtures,
+                   "unexpected validation failure for #{unquote(file)} — " <>
+                     "if this fixture is intentionally invalid, add it to @known_invalid_fixtures"
         end
       end
     end

@@ -10,7 +10,7 @@ defmodule Claptrap.Application do
       {Phoenix.PubSub, name: Claptrap.PubSub},
       Claptrap.Consumer.Supervisor,
       Claptrap.Producer.Supervisor,
-      {Bandit, plug: Claptrap.API.Router, port: port()}
+      {Bandit, plug: Claptrap.API.Plug, port: port()}
     ]
 
     opts = [strategy: :one_for_one, name: Claptrap.Supervisor]
