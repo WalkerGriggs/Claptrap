@@ -86,30 +86,30 @@ defmodule Claptrap.Integration.ConsumerCatalogTest do
     end
   end
 
-  describe "source tag inheritance" do
-    test "source tags merge with adapter-produced tags on an entry" do
-      source = create_source!(%{tags: ["tech", "news"]})
-      merged_tags = Enum.uniq(source.tags ++ ["elixir"])
+  describe "tag persistence" do
+    test "catalog persists the full tag array as provided by the consumer" do
+      source = create_source!()
 
-      {:ok, entry} = Catalog.create_entry(entry_attrs(source, %{tags: merged_tags}))
+      {:ok, entry} =
+        Catalog.create_entry(entry_attrs(source, %{tags: ["tech", "news", "elixir"]}))
 
       assert %{tags: ["tech", "news", "elixir"]} = Catalog.get_entry!(entry.id)
     end
 
-    test "source with no tags produces entries with only adapter tags" do
-      source = create_source!(%{tags: []})
-      {:ok, entry} = Catalog.create_entry(entry_attrs(source, %{tags: ["elixir"]}))
+    test "empty tag array is persisted" do
+      source = create_source!()
+      {:ok, entry} = Catalog.create_entry(entry_attrs(source, %{tags: []}))
 
-      assert %{tags: ["elixir"]} = Catalog.get_entry!(entry.id)
+      assert %{tags: []} = Catalog.get_entry!(entry.id)
     end
 
-    test "duplicate tags are removed when merging" do
-      source = create_source!(%{tags: ["elixir"]})
-      merged = Enum.uniq(source.tags ++ ["elixir", "otp"])
+    test "duplicate tags in input are persisted as-is by the catalog" do
+      source = create_source!()
 
-      {:ok, entry} = Catalog.create_entry(entry_attrs(source, %{tags: merged}))
+      {:ok, entry} =
+        Catalog.create_entry(entry_attrs(source, %{tags: ["elixir", "elixir", "otp"]}))
 
-      assert %{tags: ["elixir", "otp"]} = Catalog.get_entry!(entry.id)
+      assert %{tags: ["elixir", "elixir", "otp"]} = Catalog.get_entry!(entry.id)
     end
   end
 
