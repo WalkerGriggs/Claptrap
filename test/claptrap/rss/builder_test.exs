@@ -6,6 +6,11 @@ defmodule Claptrap.RSS.BuilderTest do
 
   @valid_days ~w(Monday Tuesday Wednesday Thursday Friday Saturday Sunday)
 
+  # Returns the value opaquely so the type checker
+  # cannot flag intentional type-mismatch tests.
+  defp bad_arg(value),
+    do: :erlang.binary_to_term(:erlang.term_to_binary(value))
+
   defp non_empty_string do
     StreamData.string(:alphanumeric, min_length: 1)
   end
@@ -294,15 +299,15 @@ defmodule Claptrap.RSS.BuilderTest do
     end
 
     test "put_image/2 rejects non-Image structs" do
-      assert_raise FunctionClauseError, fn -> Feed.put_image(base_feed(), %{url: "x"}) end
+      assert_raise FunctionClauseError, fn -> Feed.put_image(base_feed(), bad_arg(%{url: "x"})) end
     end
 
     test "put_cloud/2 rejects non-Cloud structs" do
-      assert_raise FunctionClauseError, fn -> Feed.put_cloud(base_feed(), %{domain: "x"}) end
+      assert_raise FunctionClauseError, fn -> Feed.put_cloud(base_feed(), bad_arg(%{domain: "x"})) end
     end
 
     test "put_text_input/2 rejects non-TextInput structs" do
-      assert_raise FunctionClauseError, fn -> Feed.put_text_input(base_feed(), %{title: "x"}) end
+      assert_raise FunctionClauseError, fn -> Feed.put_text_input(base_feed(), bad_arg(%{title: "x"})) end
     end
   end
 
@@ -322,7 +327,7 @@ defmodule Claptrap.RSS.BuilderTest do
     end
 
     test "add_item/2 rejects non-Item structs" do
-      assert_raise FunctionClauseError, fn -> Feed.add_item(base_feed(), %{title: "bad"}) end
+      assert_raise FunctionClauseError, fn -> Feed.add_item(base_feed(), bad_arg(%{title: "bad"})) end
     end
 
     test "add_category/2 appends categories in order" do
@@ -555,7 +560,7 @@ defmodule Claptrap.RSS.BuilderTest do
     end
 
     test "put_pub_date/2 rejects non-DateTime" do
-      assert_raise FunctionClauseError, fn -> Item.put_pub_date(Item.new(), "2024-01-01") end
+      assert_raise FunctionClauseError, fn -> Item.put_pub_date(Item.new(), bad_arg("2024-01-01")) end
     end
 
     test "put_enclosure/2 with Enclosure struct" do
@@ -564,7 +569,7 @@ defmodule Claptrap.RSS.BuilderTest do
     end
 
     test "put_enclosure/2 rejects non-Enclosure structs" do
-      assert_raise FunctionClauseError, fn -> Item.put_enclosure(Item.new(), %{url: "x"}) end
+      assert_raise FunctionClauseError, fn -> Item.put_enclosure(Item.new(), bad_arg(%{url: "x"})) end
     end
 
     test "put_guid/2 with Guid struct" do
@@ -615,7 +620,7 @@ defmodule Claptrap.RSS.BuilderTest do
 
     test "add_category/2 rejects non-Category structs" do
       assert_raise FunctionClauseError, fn ->
-        Item.add_category(Item.new(), %{value: "bad"})
+        Item.add_category(Item.new(), bad_arg(%{value: "bad"}))
       end
     end
 

@@ -65,7 +65,7 @@ defmodule Claptrap.RSS.Parser do
       {:error, %ParseError{reason: :invalid_xml, message: "failed to parse XML"}}
     else
       try do
-        {doc, _rest} = :xmerl_scan.string(charlist, space: :normalize)
+        {doc, _rest} = :xmerl_scan.string(charlist, space: :normalize, quiet: true)
         {:ok, doc, ""}
       rescue
         _e -> {:error, %ParseError{reason: :invalid_xml, message: "failed to parse XML"}}
