@@ -637,7 +637,13 @@ defmodule Claptrap.RSS.ParserTest do
           """
 
           assert {:ok, feed} = Parser.parse(xml)
-          assert feed.title == String.trim(safe_title)
+
+          expected_title =
+            safe_title
+            |> String.replace(~r/\s+/, " ")
+            |> String.trim()
+
+          assert feed.title == expected_title
         end
       end
     end
