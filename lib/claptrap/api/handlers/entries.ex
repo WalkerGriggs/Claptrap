@@ -34,7 +34,7 @@ defmodule Claptrap.API.Handlers.Entries do
   end
 
   defp filter_opts(params) do
-    []
+    [order: {:desc, :inserted_at}]
     |> maybe_add(:status, params["status"])
     |> maybe_add(:source_id, params["source_id"])
     |> maybe_add_limit(params["limit"])
@@ -47,7 +47,7 @@ defmodule Claptrap.API.Handlers.Entries do
 
   defp maybe_add_limit(opts, value) do
     case Integer.parse(value) do
-      {int, ""} -> Keyword.put(opts, :limit, int)
+      {int, ""} when int > 0 -> Keyword.put(opts, :limit, int)
       _ -> opts
     end
   end

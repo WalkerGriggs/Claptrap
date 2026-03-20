@@ -85,6 +85,37 @@ defmodule Claptrap.API.Handlers.EntriesTest do
       entries = Jason.decode!(conn.resp_body)
       assert length(entries) == 2
     end
+
+    test "ignores negative limit" do
+      {:ok, source} = create_source()
+      {:ok, _} = create_entry(source.id)
+
+      conn = call(:get, "/api/v1/entries?limit=-1")
+      assert conn.status == 200
+      assert length(Jason.decode!(conn.resp_body)) == 1
+    end
+
+    test "ignores zero limit" do
+      {:ok, source} = create_source()
+      {:ok, _} = create_entry(source.id)
+
+      conn = call(:get, "/api/v1/entries?limit=0")
+      assert conn.status == 200
+      assert length(Jason.decode!(conn.resp_body)) == 1
+    end
+
+    test "returns entries ordered by inserted_at desc by default" do
+      {:ok, source} = create_source()
+      {:ok, old} = create_entry(source.id, %{title: "Old"})
+      # Ensure different inserted_at timestamps
+      Process.sleep(10)
+      {:ok, recent} = create_entry(source.id, %{title: "Recent"})
+
+      conn = call(:get, "/api/v1/entries")
+      entries = Jason.decode!(conn.resp_body)
+      assert hd(entries)["id"] == recent.id
+      assert List.last(entries)["id"] == old.id
+    end
   end
 
   describe "GET /api/v1/entries/:id" do
