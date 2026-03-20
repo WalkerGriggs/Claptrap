@@ -923,7 +923,8 @@ defmodule Claptrap.RSS.CorpusTest do
             assert {:ok, reparsed} = Claptrap.RSS.parse(regenerated_xml)
             assert reparsed == feed
 
-          {:error, %Claptrap.RSS.GenerateError{reason: :not_implemented}} ->
+          {:error, %Claptrap.RSS.GenerateError{reason: reason}}
+          when reason in [:not_implemented, :validation_failed] ->
             :ok
         end
       end

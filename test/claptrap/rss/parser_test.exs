@@ -510,6 +510,7 @@ defmodule Claptrap.RSS.ParserTest do
   # ---------------------------------------------------------------------------
 
   describe "error cases" do
+    @describetag capture_log: true
     test "binary garbage returns ParseError with :invalid_xml" do
       assert {:error, %ParseError{reason: :invalid_xml}} = Parser.parse("<<< not xml >>>")
     end

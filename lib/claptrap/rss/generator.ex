@@ -320,7 +320,7 @@ defmodule Claptrap.RSS.Generator do
         [~c"<", tag, attr_iodata, ~c">", Enum.map(children, &extension_element(&1, prefix)), ~c"</", tag, ~c">"]
 
       text when is_binary(text) and byte_size(text) > 0 ->
-        [~c"<", tag, attr_iodata, ~c">", xml_escape(text), ~c"</", tag, ~c">"]
+        [~c"<", tag, attr_iodata, ~c">", maybe_cdata(text), ~c"</", tag, ~c">"]
 
       _ ->
         [~c"<", tag, attr_iodata, ~c"/>"]

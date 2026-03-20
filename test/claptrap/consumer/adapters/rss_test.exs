@@ -84,6 +84,7 @@ defmodule Claptrap.Consumer.Adapters.RSSTest do
       assert {:error, {:http_error, 500}} = RSS.fetch(source())
     end
 
+    @tag capture_log: true
     test "raises on malformed xml" do
       Req.Test.expect(RSS, fn conn ->
         send_resp(conn, 200, "<rss><channel><item></rss>")

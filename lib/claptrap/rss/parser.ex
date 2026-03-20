@@ -54,11 +54,15 @@ defmodule Claptrap.RSS.Parser do
   defp scan_xml(xml, backend), do: backend.scan(xml)
 
   defp default_scan(xml_binary) do
+    # Use :binary.bin_to_list/1 instead of String.to_charlist/1
+    # so xmerl receives raw UTF-8 bytes rather than Unicode
+    # codepoints. xmerl handles UTF-8 decoding internally
+    # and rejects codepoints above 127 passed as integers.
     charlist =
       try do
-        String.to_charlist(xml_binary)
+        :binary.bin_to_list(xml_binary)
       rescue
-        UnicodeConversionError -> nil
+        _ -> nil
       end
 
     if is_nil(charlist) do

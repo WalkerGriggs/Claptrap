@@ -89,6 +89,7 @@ defmodule Claptrap.Consumer.WorkerTest do
     assert_eventually(fn -> length(Catalog.list_entries(source_id: source.id)) == 1 end)
   end
 
+  @tag capture_log: true
   test "retries a transient failure and succeeds on the next attempt", %{
     sandbox_owner: sandbox_owner
   } do
