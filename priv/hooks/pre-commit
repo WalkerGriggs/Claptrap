@@ -12,6 +12,16 @@ git diff --cached --name-only --diff-filter=d | while read -r f; do
 done
 echo "    ✓ No large files detected"
 
+# Scan staged changes for secrets (if gitleaks is installed)
+if command -v gitleaks &> /dev/null; then
+  echo "==> Scanning for secrets with gitleaks"
+  gitleaks git --pre-commit --staged --verbose
+  echo "    ✓ No secrets detected"
+else
+  echo "==> Skipping secret scan (install gitleaks:"  \
+       "https://github.com/gitleaks/gitleaks#installing)"
+fi
+
 echo "==> Running mix format --check-formatted"
 mix format --check-formatted
 echo "    ✓ Formatting OK"

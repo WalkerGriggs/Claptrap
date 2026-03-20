@@ -1,0 +1,13 @@
+# Gitleaks configuration
+# https://github.com/gitleaks/gitleaks
+title = "claptrap gitleaks config"
+
+[extend]
+# Use the default gitleaks rules as the baseline
+useDefault = true
+
+[allowlist]
+# Paths that are safe to ignore (test fixtures, etc.)
+paths = [
+  '''test/support/fixtures''',
+]
