@@ -1,8 +1,8 @@
 defmodule Claptrap.RSS do
   @moduledoc false
 
-  # Dialyzer warnings suppressed because Parser, Generator, and Validator are
-  # stubs that only return errors. Remove when real implementations land.
+  # Dialyzer warnings suppressed because Parser and Generator are stubs that
+  # only return errors. Remove when real implementations land.
   @dialyzer [
     {:nowarn_function, parse: 1},
     {:nowarn_function, parse: 2},
@@ -11,8 +11,7 @@ defmodule Claptrap.RSS do
     {:nowarn_function, generate: 1},
     {:nowarn_function, generate: 2},
     {:nowarn_function, generate!: 1},
-    {:nowarn_function, generate!: 2},
-    {:nowarn_function, validate: 1}
+    {:nowarn_function, generate!: 2}
   ]
 
   alias Claptrap.RSS.{Feed, Generator, Parser, Validator}
