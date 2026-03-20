@@ -4,6 +4,23 @@ defmodule Claptrap.Schemas.Entry do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @derive {Jason.Encoder,
+           only: [
+             :id,
+             :external_id,
+             :title,
+             :summary,
+             :url,
+             :author,
+             :published_at,
+             :status,
+             :metadata,
+             :tags,
+             :source_id,
+             :inserted_at,
+             :updated_at
+           ]}
+
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
 
