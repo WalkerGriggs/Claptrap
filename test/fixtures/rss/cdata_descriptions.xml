@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>CDATA Example Feed</title>
+    <link>https://cdata.example.com</link>
+    <description><![CDATA[A feed where <em>all</em> descriptions use CDATA sections]]></description>
+    <item>
+      <title>Rich HTML Description</title>
+      <link>https://cdata.example.com/posts/rich-html</link>
+      <description><![CDATA[<div class="post-content">
+  <h2>Welcome to the Post</h2>
+  <p>This description contains <strong>bold</strong>, <em>italic</em>, and <a href="https://example.com">links</a>.</p>
+  <ul>
+    <li>First item</li>
+    <li>Second item with <code>inline code</code></li>
+  </ul>
+  <img src="https://cdata.example.com/images/photo.jpg" alt="A photo"/>
+</div>]]></description>
+      <pubDate>Mon, 03 Jun 2024 10:00:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>Special Characters in CDATA</title>
+      <link>https://cdata.example.com/posts/special-chars</link>
+      <description><![CDATA[Prices: $10 < $20 & $30 > $25. Use the formula: x = (a + b) * c / d. "Quoted" and 'single quoted' text.]]></description>
+      <pubDate>Sun, 02 Jun 2024 10:00:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>Empty CDATA</title>
+      <link>https://cdata.example.com/posts/empty</link>
+      <description><![CDATA[]]></description>
+      <pubDate>Sat, 01 Jun 2024 10:00:00 +0000</pubDate>
+    </item>
+    <item>
+      <title><![CDATA[CDATA Title Too]]></title>
+      <link>https://cdata.example.com/posts/cdata-title</link>
+      <description><![CDATA[<p>This item also has CDATA in the title element above, though that is uncommon.</p>]]></description>
+      <pubDate>Fri, 31 May 2024 10:00:00 +0000</pubDate>
+    </item>
+  </channel>
+</rss>

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+  xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd"
+  xmlns:atom="http://www.w3.org/2005/Atom"
+  xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>The Elixir Podcast</title>
+    <link>https://elixirpodcast.example.com</link>
+    <description>Weekly conversations about Elixir, Erlang, and the BEAM ecosystem</description>
+    <language>en-us</language>
+    <copyright>&#xA9; 2024 Elixir Podcast Network</copyright>
+    <lastBuildDate>Thu, 06 Jun 2024 05:00:00 +0000</lastBuildDate>
+    <atom:link href="https://elixirpodcast.example.com/feed.xml" rel="self" type="application/rss+xml"/>
+    <image>
+      <url>https://elixirpodcast.example.com/artwork-3000.jpg</url>
+      <title>The Elixir Podcast</title>
+      <link>https://elixirpodcast.example.com</link>
+    </image>
+    <itunes:author>Elixir Podcast Network</itunes:author>
+    <itunes:summary>Weekly conversations about Elixir, Erlang, and the BEAM ecosystem. Interviews with library authors, core team members, and production users.</itunes:summary>
+    <itunes:owner>
+      <itunes:name>Elixir Podcast Network</itunes:name>
+      <itunes:email>hello@elixirpodcast.example.com</itunes:email>
+    </itunes:owner>
+    <itunes:explicit>false</itunes:explicit>
+    <itunes:category text="Technology"/>
+    <itunes:image href="https://elixirpodcast.example.com/artwork-3000.jpg"/>
+    <itunes:type>episodic</itunes:type>
+    <item>
+      <title>Episode 142: LiveView 1.0 Deep Dive</title>
+      <link>https://elixirpodcast.example.com/episodes/142</link>
+      <description>We sit down with Chris McCord to discuss the LiveView 1.0 release, what changed, and what the future holds.</description>
+      <pubDate>Thu, 06 Jun 2024 05:00:00 +0000</pubDate>
+      <enclosure url="https://cdn.elixirpodcast.example.com/episodes/ep142-liveview-deep-dive.mp3" length="67108864" type="audio/mpeg"/>
+      <guid isPermaLink="false">ep142-liveview-1-0</guid>
+      <itunes:title>LiveView 1.0 Deep Dive</itunes:title>
+      <itunes:episode>142</itunes:episode>
+      <itunes:season>5</itunes:season>
+      <itunes:duration>01:12:45</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+      <itunes:episodeType>full</itunes:episodeType>
+      <itunes:image href="https://elixirpodcast.example.com/episodes/ep142-artwork.jpg"/>
+      <content:encoded><![CDATA[<p>In this episode, we sit down with Chris McCord to discuss the long-awaited LiveView 1.0 release.</p>
+<h2>Topics Covered</h2>
+<ul>
+<li>The journey from 0.x to 1.0</li>
+<li>Breaking changes and migration path</li>
+<li>New features: streams, async assigns</li>
+<li>Performance improvements</li>
+</ul>]]></content:encoded>
+    </item>
+    <item>
+      <title>Episode 141: Building Distributed Systems with Horde</title>
+      <link>https://elixirpodcast.example.com/episodes/141</link>
+      <description>Exploring distributed process management in Elixir using Horde for dynamic supervisors and registries.</description>
+      <pubDate>Thu, 30 May 2024 05:00:00 +0000</pubDate>
+      <enclosure url="https://cdn.elixirpodcast.example.com/episodes/ep141-horde.mp3" length="52428800" type="audio/mpeg"/>
+      <guid isPermaLink="false">ep141-distributed-horde</guid>
+      <itunes:title>Building Distributed Systems with Horde</itunes:title>
+      <itunes:episode>141</itunes:episode>
+      <itunes:season>5</itunes:season>
+      <itunes:duration>00:58:30</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+      <itunes:episodeType>full</itunes:episodeType>
+    </item>
+    <item>
+      <title>Episode 140: Bonus - OTP 27 Release Notes</title>
+      <link>https://elixirpodcast.example.com/episodes/140</link>
+      <description>A quick bonus episode covering the highlights of the OTP 27 release.</description>
+      <pubDate>Sat, 25 May 2024 12:00:00 +0000</pubDate>
+      <enclosure url="https://cdn.elixirpodcast.example.com/episodes/ep140-otp27.mp3" length="15728640" type="audio/mpeg"/>
+      <guid isPermaLink="false">ep140-otp27-bonus</guid>
+      <itunes:title>OTP 27 Release Notes</itunes:title>
+      <itunes:episode>140</itunes:episode>
+      <itunes:duration>00:22:15</itunes:duration>
+      <itunes:explicit>false</itunes:explicit>
+      <itunes:episodeType>bonus</itunes:episodeType>
+    </item>
+  </channel>
+</rss>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>The BEAM Weekly</title>
+    <description>A weekly newsletter covering the Erlang and Elixir ecosystem</description>
+    <link>https://beamweekly.substack.com</link>
+    <generator>Substack</generator>
+    <lastBuildDate>Fri, 07 Jun 2024 12:05:33 +0000</lastBuildDate>
+    <atom:link href="https://beamweekly.substack.com/feed" rel="self" type="application/rss+xml"/>
+    <image>
+      <url>https://substackcdn.com/image/fetch/w_256,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fbeam-logo.png</url>
+      <title>The BEAM Weekly</title>
+      <link>https://beamweekly.substack.com</link>
+    </image>
+    <item>
+      <title>Issue #87: Erlang/OTP 27 Highlights</title>
+      <description><![CDATA[<p>This week we cover the major highlights from the Erlang/OTP 27 release, including new features in the compiler and runtime.</p><div class="subscription-widget-wrap"><div class="subscription-widget"><a href="https://beamweekly.substack.com/subscribe?">Subscribe</a></div></div>]]></description>
+      <link>https://beamweekly.substack.com/p/issue-87-erlangotp-27-highlights</link>
+      <guid isPermaLink="true">https://beamweekly.substack.com/p/issue-87-erlangotp-27-highlights</guid>
+      <dc:creator>BEAM Weekly Team</dc:creator>
+      <pubDate>Fri, 07 Jun 2024 12:05:33 +0000</pubDate>
+      <content:encoded><![CDATA[<h2>Erlang/OTP 27 Highlights</h2>
+<p>The long-awaited OTP 27 release brings several exciting changes to the BEAM ecosystem:</p>
+<ul>
+<li><strong>Documentation attributes</strong> - First-class support for documentation in Erlang modules</li>
+<li><strong>New JSON module</strong> - Built-in JSON encoding and decoding</li>
+<li><strong>Process labels</strong> - Improved observability with process labels</li>
+</ul>
+<p>Read the full release notes on the <a href="https://www.erlang.org/blog/otp-27-highlights">Erlang blog</a>.</p>]]></content:encoded>
+      <enclosure url="https://substackcdn.com/image/fetch/f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fotp27-cover.png" length="0" type="image/png"/>
+    </item>
+    <item>
+      <title>Issue #86: LiveView Turns Five</title>
+      <description><![CDATA[<p>Celebrating five years of Phoenix LiveView and looking at how far the library has come.</p>]]></description>
+      <link>https://beamweekly.substack.com/p/issue-86-liveview-turns-five</link>
+      <guid isPermaLink="true">https://beamweekly.substack.com/p/issue-86-liveview-turns-five</guid>
+      <dc:creator>BEAM Weekly Team</dc:creator>
+      <pubDate>Fri, 31 May 2024 12:01:22 +0000</pubDate>
+      <content:encoded><![CDATA[<h2>LiveView Turns Five</h2>
+<p>It has been five years since Chris McCord first demonstrated Phoenix LiveView at ElixirConf 2019.</p>]]></content:encoded>
+    </item>
+  </channel>
+</rss>

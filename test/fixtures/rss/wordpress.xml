@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+  xmlns:content="http://purl.org/rss/1.0/modules/content/"
+  xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+  xmlns:dc="http://purl.org/dc/elements/1.1/"
+  xmlns:atom="http://www.w3.org/2005/Atom"
+  xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+  xmlns:slash="http://purl.org/rss/1.0/modules/slash/">
+  <channel>
+    <title>WordPress Engineering Blog</title>
+    <atom:link href="https://engineering.example.com/feed/" rel="self" type="application/rss+xml"/>
+    <link>https://engineering.example.com</link>
+    <description>Latest posts from the engineering team</description>
+    <lastBuildDate>Wed, 15 May 2024 14:30:00 +0000</lastBuildDate>
+    <language>en-US</language>
+    <sy:updatePeriod>hourly</sy:updatePeriod>
+    <sy:updateFrequency>1</sy:updateFrequency>
+    <generator>https://wordpress.org/?v=6.5.3</generator>
+    <image>
+      <url>https://engineering.example.com/wp-content/uploads/2024/01/favicon-32x32.png</url>
+      <title>WordPress Engineering Blog</title>
+      <link>https://engineering.example.com</link>
+      <width>32</width>
+      <height>32</height>
+    </image>
+    <item>
+      <title>Scaling Our Elixir Infrastructure</title>
+      <link>https://engineering.example.com/2024/05/scaling-elixir/</link>
+      <comments>https://engineering.example.com/2024/05/scaling-elixir/#respond</comments>
+      <dc:creator><![CDATA[Sarah Chen]]></dc:creator>
+      <pubDate>Wed, 15 May 2024 14:30:00 +0000</pubDate>
+      <category><![CDATA[Engineering]]></category>
+      <category><![CDATA[Elixir]]></category>
+      <category><![CDATA[Infrastructure]]></category>
+      <guid isPermaLink="false">https://engineering.example.com/?p=1042</guid>
+      <description><![CDATA[How we scaled our Elixir services to handle 10x traffic growth.]]></description>
+      <content:encoded><![CDATA[<p>Over the past year, our team has been working on scaling our Elixir infrastructure to handle significant traffic growth.</p>
+<h2>The Challenge</h2>
+<p>Our existing GenServer-based architecture was hitting limits at around 50,000 concurrent connections. We needed to rethink our approach.</p>
+<h2>The Solution</h2>
+<p>We implemented a distributed supervision tree using <code>:pg</code> process groups and dynamic supervisors.</p>
+<pre><code class="language-elixir">defmodule MyApp.DistributedWorker do
+  use GenServer
+  # ... implementation details
+end</code></pre>
+<p>The results were impressive: we now handle 500,000+ concurrent connections with sub-millisecond latency.</p>]]></content:encoded>
+      <wfw:commentRss>https://engineering.example.com/2024/05/scaling-elixir/feed/</wfw:commentRss>
+      <slash:comments>12</slash:comments>
+    </item>
+    <item>
+      <title>Introducing Our New CI Pipeline</title>
+      <link>https://engineering.example.com/2024/05/new-ci-pipeline/</link>
+      <comments>https://engineering.example.com/2024/05/new-ci-pipeline/#respond</comments>
+      <dc:creator><![CDATA[Marcus Johnson]]></dc:creator>
+      <pubDate>Mon, 13 May 2024 09:00:00 +0000</pubDate>
+      <category><![CDATA[DevOps]]></category>
+      <category><![CDATA[CI/CD]]></category>
+      <guid isPermaLink="false">https://engineering.example.com/?p=1038</guid>
+      <description><![CDATA[A walkthrough of our new continuous integration setup.]]></description>
+      <content:encoded><![CDATA[<p>We recently overhauled our CI pipeline to reduce build times by 60%.</p>
+<p>Key changes included parallel test execution, better caching strategies, and incremental compilation.</p>]]></content:encoded>
+      <wfw:commentRss>https://engineering.example.com/2024/05/new-ci-pipeline/feed/</wfw:commentRss>
+      <slash:comments>5</slash:comments>
+    </item>
+  </channel>
+</rss>

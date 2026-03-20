@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <item>
+      <title>Early Item One</title>
+      <link>https://quirky.example.com/1</link>
+      <description>This item appears before the channel title and link.</description>
+    </item>
+    <item>
+      <title>Early Item Two</title>
+      <link>https://quirky.example.com/2</link>
+      <description>Another early item.</description>
+    </item>
+    <title>Quirky Feed</title>
+    <link>https://quirky.example.com</link>
+    <description>A feed where items appear before channel metadata</description>
+  </channel>
+</rss>

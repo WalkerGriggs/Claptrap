@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>ISO 8601 Date Feed</title>
+    <link>https://iso-dates.example.com</link>
+    <description>A feed that uses ISO 8601 dates instead of RFC 822</description>
+    <pubDate>2024-06-01T12:00:00Z</pubDate>
+    <lastBuildDate>2024-06-07T18:30:00+00:00</lastBuildDate>
+    <item>
+      <title>Post with ISO date</title>
+      <link>https://iso-dates.example.com/posts/1</link>
+      <description>This post uses an ISO 8601 formatted date.</description>
+      <pubDate>2024-06-07T10:30:00Z</pubDate>
+    </item>
+    <item>
+      <title>Post with offset ISO date</title>
+      <link>https://iso-dates.example.com/posts/2</link>
+      <description>This post uses an ISO 8601 date with timezone offset.</description>
+      <pubDate>2024-06-06T15:45:00-05:00</pubDate>
+    </item>
+  </channel>
+</rss>
