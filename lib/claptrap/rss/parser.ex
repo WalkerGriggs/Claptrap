@@ -58,24 +58,15 @@ defmodule Claptrap.RSS.Parser do
     # so xmerl receives raw UTF-8 bytes rather than Unicode
     # codepoints. xmerl handles UTF-8 decoding internally
     # and rejects codepoints above 127 passed as integers.
-    charlist =
-      try do
-        :binary.bin_to_list(xml_binary)
-      rescue
-        _ -> nil
-      end
+    charlist = :binary.bin_to_list(xml_binary)
 
-    if is_nil(charlist) do
-      {:error, %ParseError{reason: :invalid_xml, message: "failed to parse XML"}}
-    else
-      try do
-        {doc, _rest} = :xmerl_scan.string(charlist, space: :normalize, quiet: true)
-        {:ok, doc, ""}
-      rescue
-        _e -> {:error, %ParseError{reason: :invalid_xml, message: "failed to parse XML"}}
-      catch
-        :exit, _reason -> {:error, %ParseError{reason: :invalid_xml, message: "failed to parse XML"}}
-      end
+    try do
+      {doc, _rest} = :xmerl_scan.string(charlist, space: :normalize, quiet: true)
+      {:ok, doc, ""}
+    rescue
+      _e -> {:error, %ParseError{reason: :invalid_xml, message: "failed to parse XML"}}
+    catch
+      :exit, _reason -> {:error, %ParseError{reason: :invalid_xml, message: "failed to parse XML"}}
     end
   end
 
