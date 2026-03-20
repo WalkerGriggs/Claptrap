@@ -1,6 +1,9 @@
 defmodule Claptrap.Schemas.SinkTest do
   use Claptrap.DataCase, async: true
 
+  @moduletag :integration
+  @moduletag capture_log: true
+
   alias Claptrap.Schemas.Sink
 
   @valid_attrs %{

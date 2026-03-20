@@ -1,6 +1,9 @@
 defmodule Claptrap.API.Handlers.SubscriptionsTest do
   use Claptrap.DataCase, async: true
 
+  @moduletag :integration
+  @moduletag capture_log: true
+
   alias Claptrap.API.Plug, as: APIPlug
   alias Claptrap.Catalog
 

@@ -1,6 +1,9 @@
 defmodule Claptrap.Schemas.SubscriptionTest do
   use Claptrap.DataCase, async: true
 
+  @moduletag :integration
+  @moduletag capture_log: true
+
   alias Claptrap.Schemas.Subscription
 
   @valid_attrs %{

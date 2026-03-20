@@ -1,6 +1,9 @@
 defmodule Claptrap.Consumer.CoordinatorTest do
   use Claptrap.DataCase, async: false
 
+  @moduletag :integration
+  @moduletag capture_log: true
+
   import ExUnit.CaptureLog
   import Plug.Conn
 

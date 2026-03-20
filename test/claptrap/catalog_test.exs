@@ -1,6 +1,9 @@
 defmodule Claptrap.CatalogTest do
   use Claptrap.DataCase, async: true
 
+  @moduletag :integration
+  @moduletag capture_log: true
+
   alias Claptrap.Catalog
 
   @source_attrs %{type: "rss", name: "Feed", config: %{"url" => "https://example.com/feed"}}

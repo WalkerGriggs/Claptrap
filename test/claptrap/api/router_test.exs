@@ -1,6 +1,9 @@
 defmodule Claptrap.API.RouterTest do
   use Claptrap.DataCase, async: true
 
+  @moduletag :integration
+  @moduletag capture_log: true
+
   alias Claptrap.API.Plug, as: APIPlug
 
   defp call(method, path) do
