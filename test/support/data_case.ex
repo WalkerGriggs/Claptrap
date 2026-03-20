@@ -17,6 +17,14 @@ defmodule Claptrap.DataCase do
   setup tags do
     pid = Sandbox.start_owner!(Claptrap.Repo, shared: !tags[:async])
     on_exit(fn -> Sandbox.stop_owner(pid) end)
-    :ok
+    {:ok, sandbox_owner: pid}
+  end
+
+  def errors_on(changeset) do
+    Ecto.Changeset.traverse_errors(changeset, fn {message, opts} ->
+      Enum.reduce(opts, message, fn {key, value}, acc ->
+        String.replace(acc, "%{#{key}}", to_string(value))
+      end)
+    end)
   end
 end

@@ -43,6 +43,8 @@ defmodule Claptrap.MixProject do
       {:plug, "~> 1.16"},
       {:bandit, "~> 1.6"},
       {:jason, "~> 1.4"},
+      {:req, "~> 0.5"},
+      {:sweet_xml, "~> 0.7"},
 
       # Database
       {:ecto_sql, "~> 3.12"},
