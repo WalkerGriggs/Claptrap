@@ -6,8 +6,6 @@ defmodule Claptrap.RSS.BuilderTest do
 
   @valid_days ~w(Monday Tuesday Wednesday Thursday Friday Saturday Sunday)
 
-  # -- StreamData generators -------------------------------------------------
-
   defp non_empty_string do
     StreamData.string(:alphanumeric, min_length: 1)
   end
@@ -44,10 +42,6 @@ defmodule Claptrap.RSS.BuilderTest do
   defp pad(n, width \\ 2), do: n |> Integer.to_string() |> String.pad_leading(width, "0")
 
   defp base_feed, do: Feed.new("T", "https://example.com", "D")
-
-  # ==========================================================================
-  # Feed Builder
-  # ==========================================================================
 
   describe "Feed.new/3" do
     test "creates a feed with required fields and correct defaults" do
@@ -110,8 +104,6 @@ defmodule Claptrap.RSS.BuilderTest do
       end
     end
   end
-
-  # -- Feed scalar setters ---------------------------------------------------
 
   describe "Feed put_* scalar setters" do
     test "put_language/2 sets language" do
@@ -256,8 +248,6 @@ defmodule Claptrap.RSS.BuilderTest do
     end
   end
 
-  # -- Feed compound sub-element setters ------------------------------------
-
   describe "Feed put_* compound setters" do
     test "put_image/2 sets image" do
       image = %Image{url: "https://example.com/img.png", title: "Logo", link: "https://example.com"}
@@ -315,8 +305,6 @@ defmodule Claptrap.RSS.BuilderTest do
       assert_raise FunctionClauseError, fn -> Feed.put_text_input(base_feed(), %{title: "x"}) end
     end
   end
-
-  # -- Feed list appenders --------------------------------------------------
 
   describe "Feed add_* appenders" do
     test "add_item/2 appends items in order" do
@@ -437,8 +425,6 @@ defmodule Claptrap.RSS.BuilderTest do
     end
   end
 
-  # -- Feed namespace / extension helpers ------------------------------------
-
   describe "Feed namespace and extension helpers" do
     test "put_namespace/3 adds a namespace prefix mapping" do
       assert Feed.put_namespace(base_feed(), "dc", "http://purl.org/dc/elements/1.1/") == %Feed{
@@ -498,10 +484,6 @@ defmodule Claptrap.RSS.BuilderTest do
     end
   end
 
-  # ==========================================================================
-  # Item Builder
-  # ==========================================================================
-
   describe "Item.new/0 and Item.new/1" do
     test "creates an empty item with no arguments" do
       assert Item.new() == %Item{
@@ -539,8 +521,6 @@ defmodule Claptrap.RSS.BuilderTest do
       assert_raise KeyError, fn -> Item.new(bogus: "value") end
     end
   end
-
-  # -- Item scalar setters ---------------------------------------------------
 
   describe "Item put_* setters" do
     test "put_title/2" do
@@ -623,8 +603,6 @@ defmodule Claptrap.RSS.BuilderTest do
     end
   end
 
-  # -- Item list appenders ---------------------------------------------------
-
   describe "Item add_* appenders" do
     test "add_category/2 appends categories in order" do
       cat1 = %Category{value: "tech"}
@@ -660,8 +638,6 @@ defmodule Claptrap.RSS.BuilderTest do
     end
   end
 
-  # -- Item pipeline ---------------------------------------------------------
-
   describe "Item pipeline" do
     property "pipeline builds complete items" do
       check all(
@@ -687,10 +663,6 @@ defmodule Claptrap.RSS.BuilderTest do
       end
     end
   end
-
-  # ==========================================================================
-  # Integration pipeline
-  # ==========================================================================
 
   describe "integration pipeline" do
     test "builds a complete feed with nested items via pipelines" do
