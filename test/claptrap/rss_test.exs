@@ -15,9 +15,14 @@ defmodule Claptrap.RSSTest do
   end
 
   describe "generate!/2" do
+    test "returns binary for valid feeds" do
+      assert xml = RSS.generate!(@feed)
+      assert is_binary(xml)
+    end
+
     test "raises GenerateError for invalid feeds" do
       assert_raise GenerateError, fn ->
-        RSS.generate!(@feed)
+        RSS.generate!(%{@feed | title: ""})
       end
     end
   end
@@ -29,8 +34,13 @@ defmodule Claptrap.RSSTest do
   end
 
   describe "generate/2" do
-    test "returns {:error, %GenerateError{}} for stubbed input" do
-      assert {:error, %GenerateError{}} = RSS.generate(@feed)
+    test "returns {:ok, binary} for valid feed" do
+      assert {:ok, xml} = RSS.generate(@feed)
+      assert is_binary(xml)
+    end
+
+    test "returns {:error, %GenerateError{}} for invalid feed" do
+      assert {:error, %GenerateError{}} = RSS.generate(%{@feed | title: ""})
     end
   end
 
