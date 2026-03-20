@@ -22,8 +22,7 @@ defmodule Claptrap.RSS.CorpusTest do
   # ---------------------------------------------------------------------------
 
   describe "corpus: all fixtures parse without error" do
-    for file <- File.ls!(Path.join([__DIR__, "..", "..", "fixtures", "rss"])),
-        Path.extname(file) == ".xml" do
+    for file <- File.ls!(@fixtures_dir), Path.extname(file) == ".xml" do
       @tag fixture: file
       test "parses #{file} without error" do
         xml = File.read!(Path.join(@fixtures_dir, unquote(file)))
@@ -913,8 +912,7 @@ defmodule Claptrap.RSS.CorpusTest do
   # ---------------------------------------------------------------------------
 
   describe "corpus: roundtrip parse -> generate -> reparse" do
-    for file <- File.ls!(Path.join([__DIR__, "..", "..", "fixtures", "rss"])),
-        Path.extname(file) == ".xml" do
+    for file <- File.ls!(@fixtures_dir), Path.extname(file) == ".xml" do
       @tag fixture: file
       test "roundtrip #{file}" do
         xml = File.read!(Path.join(@fixtures_dir, unquote(file)))
