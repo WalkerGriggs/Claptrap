@@ -1,6 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Fail if any staged file exceeds 500 KB
+echo "==> Checking for large files (>500 KB)"
+git diff --cached --name-only --diff-filter=d | while read -r f; do
+  kb=$(( $(wc -c < "$f") / 1024 ))
+  if [ "$kb" -gt 500 ]; then
+    echo "ERROR: $f is ${kb} KB (limit is 500 KB)"
+    exit 1
+  fi
+done
+echo "    ✓ No large files detected"
+
 echo "==> Running mix format --check-formatted"
 mix format --check-formatted
 echo "    ✓ Formatting OK"

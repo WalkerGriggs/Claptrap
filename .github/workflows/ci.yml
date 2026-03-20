@@ -32,6 +32,16 @@ jobs:
           restore-keys: |
             mix-${{ runner.os }}-${{ steps.beam.outputs.elixir-version }}-${{ steps.beam.outputs.otp-version }}-
 
+      - name: Check for large files (>500 KB)
+        run: |
+          git ls-files | while read -r f; do
+            kb=$(( $(wc -c < "$f") / 1024 ))
+            if [ "$kb" -gt 500 ]; then
+              echo "::error file=$f::${kb} KB exceeds 500 KB limit"
+              exit 1
+            fi
+          done
+
       - run: mix deps.get
       - run: mix format --check-formatted
       - run: mix compile --warnings-as-errors
