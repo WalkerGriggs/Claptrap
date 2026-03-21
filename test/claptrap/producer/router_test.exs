@@ -1,11 +1,12 @@
 defmodule Claptrap.Producer.RouterTest do
   use Claptrap.DataCase, async: false
 
+  @moduletag :integration
+  @moduletag capture_log: true
+
   alias Claptrap.Catalog
   alias Claptrap.Producer.{Router, Worker}
   alias Claptrap.Registry, as: Reg
-
-  @moduletag capture_log: true
 
   @source_attrs %{type: "rss", name: "Source", config: %{"url" => "https://example.com/feed"}}
   @sink_attrs %{

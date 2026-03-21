@@ -1,6 +1,9 @@
 defmodule Claptrap.Schemas.SourceTest do
   use Claptrap.DataCase, async: true
 
+  @moduletag :integration
+  @moduletag capture_log: true
+
   alias Claptrap.Schemas.Source
 
   @valid_attrs %{
