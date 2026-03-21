@@ -5,6 +5,8 @@ defmodule Claptrap.DataCase do
 
   using do
     quote do
+      @moduletag :integration
+
       alias Claptrap.Repo
       import Ecto
       import Ecto.Changeset

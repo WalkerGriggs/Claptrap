@@ -5,6 +5,7 @@ defmodule ClaptrapTest do
     assert Process.whereis(Claptrap.Supervisor) != nil
   end
 
+  @tag :integration
   test "repo is running" do
     assert Process.whereis(Claptrap.Repo) != nil
   end

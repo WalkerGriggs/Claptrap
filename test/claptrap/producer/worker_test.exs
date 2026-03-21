@@ -15,6 +15,10 @@ defmodule Claptrap.Producer.WorkerTest do
   }
 
   setup do
+    ExUnit.CaptureLog.capture_log(fn ->
+      Supervisor.restart_child(Claptrap.Supervisor, Claptrap.Producer.Supervisor)
+    end)
+
     Supervisor.terminate_child(Claptrap.Supervisor, Claptrap.Producer.Supervisor)
     Process.sleep(20)
 
@@ -30,10 +34,6 @@ defmodule Claptrap.Producer.WorkerTest do
       rescue
         ArgumentError -> :ok
       end
-
-      ExUnit.CaptureLog.capture_log(fn ->
-        Supervisor.restart_child(Claptrap.Supervisor, Claptrap.Producer.Supervisor)
-      end)
     end)
 
     :ok
