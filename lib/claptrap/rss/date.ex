@@ -145,24 +145,30 @@ defmodule Claptrap.RSS.Date do
 
   defp parse_timezone(""), do: {:ok, 0}
 
+  defp parse_timezone(<<"+", h1, h2, m1, m2>>)
+       when h1 in ?0..?9 and h2 in ?0..?9 and
+              m1 in ?0..?9 and m2 in ?0..?9 do
+    offset =
+      ((h1 - ?0) * 10 + (h2 - ?0)) * 3600 +
+        ((m1 - ?0) * 10 + (m2 - ?0)) * 60
+
+    {:ok, offset}
+  end
+
+  defp parse_timezone(<<"-", h1, h2, m1, m2>>)
+       when h1 in ?0..?9 and h2 in ?0..?9 and
+              m1 in ?0..?9 and m2 in ?0..?9 do
+    offset =
+      ((h1 - ?0) * 10 + (h2 - ?0)) * 3600 +
+        ((m1 - ?0) * 10 + (m2 - ?0)) * 60
+
+    {:ok, -offset}
+  end
+
   defp parse_timezone(tz) do
-    cond do
-      Regex.match?(~r/^[+-]\d{4}$/, tz) ->
-        {sign, rest} = String.split_at(tz, 1)
-        {hours, _} = Integer.parse(String.slice(rest, 0, 2))
-        {mins, _} = Integer.parse(String.slice(rest, 2, 2))
-        offset = hours * 3600 + mins * 60
-        {:ok, if(sign == "-", do: -offset, else: offset)}
-
-      Map.has_key?(@named_tz_offsets, String.upcase(tz)) ->
-        {:ok, Map.fetch!(@named_tz_offsets, String.upcase(tz))}
-
-      Regex.match?(~r/^[A-Za-z]+$/, tz) ->
-        # Unknown named tz or military letter -> treat as UTC
-        {:ok, 0}
-
-      true ->
-        {:ok, 0}
+    case Map.fetch(@named_tz_offsets, String.upcase(tz)) do
+      {:ok, offset} -> {:ok, offset}
+      :error -> {:ok, 0}
     end
   end
 

@@ -154,10 +154,8 @@ defmodule Claptrap.Consumer.Adapters.RSS do
   end
 
   defp external_id(primary_candidates, fallback_candidates) do
-    case first_present(primary_candidates) do
-      nil -> stable_external_id(fallback_candidates)
-      value -> value
-    end
+    first_present(primary_candidates) ||
+      stable_external_id(fallback_candidates)
   end
 
   defp stable_external_id(candidates) do
@@ -177,10 +175,7 @@ defmodule Claptrap.Consumer.Adapters.RSS do
   end
 
   defp default_title(title) do
-    case blank_to_nil(title) do
-      nil -> "(untitled)"
-      value -> value
-    end
+    blank_to_nil(title) || "(untitled)"
   end
 
   defp normalize_tags(values) do
@@ -207,13 +202,12 @@ defmodule Claptrap.Consumer.Adapters.RSS do
 
   defp parse_published_at(nil), do: nil
 
+  defp parse_published_at(""), do: nil
+
   defp parse_published_at(value) do
     case blank_to_nil(value) do
-      nil ->
-        nil
-
-      value ->
-        parse_published_at_value(value)
+      nil -> nil
+      trimmed -> parse_published_at_value(trimmed)
     end
   end
 
@@ -277,16 +271,19 @@ defmodule Claptrap.Consumer.Adapters.RSS do
   defp offset_seconds("UT"), do: {:ok, 0}
   defp offset_seconds("GMT"), do: {:ok, 0}
 
-  defp offset_seconds(<<sign::binary-size(1), hours::binary-size(2), minutes::binary-size(2)>>)
-       when sign in ["+", "-"] do
+  defp offset_seconds(<<"+", hours::binary-size(2), minutes::binary-size(2)>>) do
     with {hours, ""} <- Integer.parse(hours),
          {minutes, ""} <- Integer.parse(minutes) do
-      seconds = hours * 3600 + minutes * 60
+      {:ok, hours * 3600 + minutes * 60}
+    else
+      _ -> :error
+    end
+  end
 
-      case sign do
-        "+" -> {:ok, seconds}
-        "-" -> {:ok, -seconds}
-      end
+  defp offset_seconds(<<"-", hours::binary-size(2), minutes::binary-size(2)>>) do
+    with {hours, ""} <- Integer.parse(hours),
+         {minutes, ""} <- Integer.parse(minutes) do
+      {:ok, -(hours * 3600 + minutes * 60)}
     else
       _ -> :error
     end

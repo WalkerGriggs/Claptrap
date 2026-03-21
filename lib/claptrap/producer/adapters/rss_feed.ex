@@ -25,19 +25,14 @@ defmodule Claptrap.Producer.Adapters.RssFeed do
   end
 
   @impl true
-  def validate_config(config) when is_map(config) do
-    cond do
-      not Map.has_key?(config, "description") ->
-        {:error, "missing required key: description"}
+  def validate_config(%{"description" => _, "max_entries" => n})
+      when not is_integer(n) or n < 1,
+      do: {:error, "max_entries must be a positive integer"}
 
-      Map.has_key?(config, "max_entries") and
-          (not is_integer(config["max_entries"]) or config["max_entries"] < 1) ->
-        {:error, "max_entries must be a positive integer"}
+  def validate_config(%{"description" => _}), do: :ok
 
-      true ->
-        :ok
-    end
-  end
+  def validate_config(config) when is_map(config),
+    do: {:error, "missing required key: description"}
 
   def validate_config(_), do: {:error, "config must be a map"}
 
