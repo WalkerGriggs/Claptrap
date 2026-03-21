@@ -10,7 +10,7 @@ defmodule Claptrap.Producer.WorkerTest do
 
   @source_attrs %{type: "rss", name: "Source", config: %{"url" => "https://example.com/feed"}}
   @sink_attrs %{
-    type: "rss_feed",
+    type: "rss",
     name: "Test Sink",
     config: %{"description" => "Test feed"}
   }

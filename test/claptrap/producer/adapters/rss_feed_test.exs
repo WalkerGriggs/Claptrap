@@ -10,7 +10,7 @@ defmodule Claptrap.Producer.Adapters.RssFeedTest do
 
   @source_attrs %{type: "rss", name: "Source", config: %{"url" => "https://example.com/feed"}}
   @sink_attrs %{
-    type: "rss_feed",
+    type: "rss",
     name: "My Feed",
     config: %{"description" => "A test feed"}
   }
@@ -179,7 +179,7 @@ defmodule Claptrap.Producer.Adapters.RssFeedTest do
 
       {:ok, sink} =
         Catalog.create_sink(%{
-          type: "rss_feed",
+          type: "rss",
           name: "Limited Feed",
           config: %{"description" => "Limited", "max_entries" => 2}
         })

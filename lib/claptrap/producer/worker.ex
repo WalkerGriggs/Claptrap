@@ -157,6 +157,6 @@ defmodule Claptrap.Producer.Worker do
     end
   end
 
-  defp adapter_for_type("rss_feed"), do: {:ok, Claptrap.Producer.Adapters.RssFeed}
+  defp adapter_for_type("rss"), do: {:ok, Claptrap.Producer.Adapters.RssFeed}
   defp adapter_for_type(other), do: {:error, "unknown sink type: #{other}"}
 end

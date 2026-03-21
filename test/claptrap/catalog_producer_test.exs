@@ -9,7 +9,7 @@ defmodule Claptrap.Integration.CatalogProducerTest do
   alias Claptrap.Registry, as: Reg
 
   @source_attrs %{type: "rss", name: "Test Source", config: %{"url" => "https://example.com/feed"}}
-  @sink_attrs %{type: "rss_feed", name: "Test Sink", config: %{"description" => "Test feed"}}
+  @sink_attrs %{type: "rss", name: "Test Sink", config: %{"description" => "Test feed"}}
 
   defp create_source!(attrs \\ %{}) do
     {:ok, source} = Catalog.create_source(Map.merge(@source_attrs, attrs))
