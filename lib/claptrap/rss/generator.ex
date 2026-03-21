@@ -20,16 +20,25 @@ defmodule Claptrap.RSS.Generator do
   def generate(%Feed{} = feed, opts \\ []) do
     validate? = Keyword.get(opts, :validate, true)
 
-    if validate? do
-      case Validator.validate(feed) do
-        :ok ->
-          do_generate(feed, opts)
-
-        {:error, _errors} ->
-          {:error, %GenerateError{reason: :validation_failed, message: "feed validation failed", path: []}}
-      end
-    else
+    with :ok <- maybe_validate(feed, validate?) do
       do_generate(feed, opts)
+    end
+  end
+
+  defp maybe_validate(_feed, false), do: :ok
+
+  defp maybe_validate(feed, true) do
+    case Validator.validate(feed) do
+      :ok ->
+        :ok
+
+      {:error, _errors} ->
+        {:error,
+         %GenerateError{
+           reason: :validation_failed,
+           message: "feed validation failed",
+           path: []
+         }}
     end
   end
 
@@ -132,14 +141,10 @@ defmodule Claptrap.RSS.Generator do
   defp optional_description_el(value), do: description_el(value)
 
   defp maybe_cdata(text) when is_binary(text) do
-    if needs_cdata?(text) do
-      if String.contains?(text, "]]>") do
-        xml_escape(text)
-      else
-        [~c"<![CDATA[", text, ~c"]]>"]
-      end
-    else
-      xml_escape(text)
+    cond do
+      not needs_cdata?(text) -> xml_escape(text)
+      String.contains?(text, "]]>") -> xml_escape(text)
+      true -> [~c"<![CDATA[", text, ~c"]]>"]
     end
   end
 

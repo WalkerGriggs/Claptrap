@@ -83,13 +83,14 @@ defmodule Claptrap.RSS.Parser do
     end
   end
 
-  defp find_channel(rss_element, strict) do
+  defp find_channel(rss_element, _strict) do
     case find_child_element(rss_element, "channel") do
-      nil when strict ->
-        {:error, %ParseError{reason: :missing_channel, message: "no <channel> element found inside <rss>"}}
-
       nil ->
-        {:error, %ParseError{reason: :missing_channel, message: "no <channel> element found inside <rss>"}}
+        {:error,
+         %ParseError{
+           reason: :missing_channel,
+           message: "no <channel> element found inside <rss>"
+         }}
 
       channel ->
         {:ok, channel}
@@ -190,20 +191,20 @@ defmodule Claptrap.RSS.Parser do
     Enum.reduce(children, acc, fn el, acc ->
       name = element_name(el)
 
-      cond do
-        name in @channel_scalars ->
-          key = String.to_atom(name)
-          Map.put_new(acc, key, text_content(el))
-
-        name in @channel_camel_scalars ->
-          key = Map.fetch!(@camel_to_snake, name)
-          Map.put_new(acc, key, text_content(el))
-
-        true ->
-          acc
+      case scalar_key(name) do
+        {:ok, key} -> Map.put_new(acc, key, text_content(el))
+        :skip -> acc
       end
     end)
   end
+
+  defp scalar_key(name) when name in @channel_scalars,
+    do: {:ok, String.to_atom(name)}
+
+  defp scalar_key(name) when name in @channel_camel_scalars,
+    do: {:ok, Map.fetch!(@camel_to_snake, name)}
+
+  defp scalar_key(_name), do: :skip
 
   defp extract_dates(children, strict, date_module) do
     Enum.reduce(children, %{}, fn el, acc ->
@@ -395,15 +396,9 @@ defmodule Claptrap.RSS.Parser do
     pub_date_raw = text_of(children, "pubDate")
 
     pub_date =
-      if pub_date_raw do
-        parsed = parse_date(pub_date_raw, strict, date_module)
-
-        case parsed do
-          {:date_error, _} -> nil
-          other -> other
-        end
-      else
-        nil
+      case parse_date(pub_date_raw, strict, date_module) do
+        {:date_error, _} -> nil
+        other -> other
       end
 
     item_namespaces = extract_element_namespaces(el)
