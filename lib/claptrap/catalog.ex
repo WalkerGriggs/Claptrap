@@ -3,8 +3,8 @@ defmodule Claptrap.Catalog do
 
   import Ecto.Query
 
+  alias Claptrap.Catalog.{Entry, Sink, Source, Subscription}
   alias Claptrap.Repo
-  alias Claptrap.Schemas.{Entry, Sink, Source, Subscription}
 
   # Sources
 

@@ -1,63 +1,61 @@
-# Catalog
+# Schemas
 
-The data-access context for Claptrap's four domain entities:
-sources, sinks, subscriptions, and entries. This is the single
-gateway between business logic and the database — all other
-modules (API handlers, consumer workers, producer workers) call
-through `Claptrap.Catalog` rather than using Ecto/Repo directly.
+Ecto schemas defining Claptrap's four domain entities. These map
+directly to PostgreSQL tables and define the shape of data flowing
+through the system.
 
 ## Architecture
 
 ```
-API Handlers ─┐
-              │
-Consumer ─────┼──▶ Claptrap.Catalog ──▶ Ecto/Repo ──▶ Postgres
-              │
-Producer ─────┘
+Source ──has_many──▶ Entry
+  │                    │
+  │ tags               │ tags
+  │                    │
+  │         ┌──────────┘
+  │         │  (matched via Postgres && array overlap)
+  │         ▼
+Sink ──has_many──▶ Subscription
+                      │
+                      │ tags
 ```
 
-## Supervisor tree
-
-Not yet wired into the application. The planned tree is
-scaffolding for a future in-memory cache or coordination layer:
-
-```
-Catalog.Supervisor (:one_for_one)
-  │
-  └── Catalog.Server (GenServer)
-```
-
-`Catalog.Server` currently returns hardcoded empty data and has
-no database interaction.
+There is no direct foreign key between entries and sinks. The
+connection is implicit: entries are routed to sinks when their
+tags overlap with a subscription's tags.
 
 ## Key concepts
 
-Tag-based routing via Postgres array overlap is the core domain
-mechanism:
+The four entities and their roles:
 
-- **`subscriptions_for_tags/1`** uses the Postgres `&&` operator
-  to find subscriptions whose tags share at least one value with
-  the given list.
-- **`entries_for_sink/2`** joins entries to subscriptions via tag
-  overlap, filters by sink ID, deduplicates, and orders by
-  `inserted_at` descending with a configurable limit (default 50).
-  Uses a two-step subquery to avoid ordering/limiting conflicts
-  with `DISTINCT`.
-- **`create_entry/1`** uses `on_conflict: :nothing` with
-  `conflict_target: [:external_id, :source_id]`, so re-ingesting
-  the same entry from the same source is a silent no-op.
+- **Source** — An input feed (e.g., an RSS URL). Tracks `type`,
+  `name`, `config`, `credentials`, `enabled`, `tags`, and a
+  `last_consumed_at` polling cursor.
+- **Entry** — A piece of content ingested from a source. Status
+  is one of `"unread"`, `"in_progress"`, `"read"`, `"archived"`.
+  A unique constraint on `[:external_id, :source_id]` prevents
+  duplicate ingestion.
+- **Sink** — An output destination (e.g., an RSS feed to
+  generate). Structurally mirrors Source but without `tags` or a
+  polling cursor.
+- **Subscription** — Links a sink to a set of tags. This is the
+  routing record: entries whose tags overlap are delivered to the
+  associated sink.
 
-List functions accept keyword options and compose query clauses
-conditionally via private `maybe_*` helpers that pattern-match
-on `nil`:
+All schemas share these conventions:
 
-```elixir
-Catalog.list_entries(status: "unread", source_id: id, limit: 10)
-```
+- **UUID primary keys** using `{:id, :binary_id,
+  autogenerate: true}` and `@foreign_key_type :binary_id`.
+- **Microsecond timestamps** via
+  `timestamps(type: :utc_datetime_usec)`.
+- **Credential hiding** — Source and Sink both have a
+  `credentials` map that is writable via changesets but excluded
+  from `Jason.Encoder` so it never appears in API responses.
 
 ## Notes
 
-- Postgres array overlap (`&&`) via `fragment/2` is required for
-  tag-based queries — this is a hard dependency on PostgreSQL.
-- All four entities have full CRUD functions. Sources and sinks
-  support optional `:enabled` filtering on list operations.
+- Tags appear on Source (inherited by entries at ingest time),
+  Entry, and Subscription. The Postgres `&&` array overlap
+  operator is the mechanism for matching.
+- Source and Sink are structurally symmetric (`type`, `name`,
+  `config`, `credentials`, `enabled`). Source adds
+  `last_consumed_at` and `tags`; Sink does not.

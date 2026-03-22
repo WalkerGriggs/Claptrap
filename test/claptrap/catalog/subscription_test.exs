@@ -1,10 +1,10 @@
-defmodule Claptrap.Schemas.SubscriptionTest do
+defmodule Claptrap.Catalog.SubscriptionTest do
   use Claptrap.DataCase, async: true
 
   @moduletag :integration
   @moduletag capture_log: true
 
-  alias Claptrap.Schemas.Subscription
+  alias Claptrap.Catalog.Subscription
 
   @valid_attrs %{
     sink_id: "00000000-0000-0000-0000-000000000001",

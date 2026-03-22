@@ -1,10 +1,10 @@
-defmodule Claptrap.Schemas.SourceTest do
+defmodule Claptrap.Catalog.SourceTest do
   use Claptrap.DataCase, async: true
 
   @moduletag :integration
   @moduletag capture_log: true
 
-  alias Claptrap.Schemas.Source
+  alias Claptrap.Catalog.Source
 
   @valid_attrs %{
     type: "rss",

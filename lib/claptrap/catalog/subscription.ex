@@ -1,4 +1,4 @@
-defmodule Claptrap.Schemas.Subscription do
+defmodule Claptrap.Catalog.Subscription do
   @moduledoc false
 
   use Ecto.Schema
@@ -12,7 +12,7 @@ defmodule Claptrap.Schemas.Subscription do
   schema "subscriptions" do
     field(:tags, {:array, :string}, default: [])
 
-    belongs_to(:sink, Claptrap.Schemas.Sink)
+    belongs_to(:sink, Claptrap.Catalog.Sink)
 
     timestamps(type: :utc_datetime_usec)
   end

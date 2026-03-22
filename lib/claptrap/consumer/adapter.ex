@@ -1,7 +1,7 @@
 defmodule Claptrap.Consumer.Adapter do
   @moduledoc false
 
-  alias Claptrap.Schemas.Source
+  alias Claptrap.Catalog.Source
 
   @callback mode() :: :pull | :push
 
