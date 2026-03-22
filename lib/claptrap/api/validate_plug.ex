@@ -17,9 +17,10 @@ defmodule Claptrap.API.ValidatePlug do
 
     with {:ok, operation} <- find_operation(spec, conn),
          {:ok, request_body} <- resolve_request_body(operation, spec),
-         {:error, errors} <- cast_body(request_body, conn, spec) do
-      send_validation_error(conn, errors)
+         {:ok, _cast_params} <- cast_body(request_body, conn, spec) do
+      conn
     else
+      {:error, errors} -> send_validation_error(conn, errors)
       _ -> conn
     end
   end
@@ -64,7 +65,21 @@ defmodule Claptrap.API.ValidatePlug do
         Cast.cast(media_type.schema, conn.body_params, spec.components.schemas)
 
       _ ->
-        :ok
+        supported = content |> Map.keys() |> Enum.join(", ")
+
+        {:error,
+         [
+           %Cast.Error{
+             reason: :invalid_type,
+             name: "content-type",
+             path: [],
+             value: content_type,
+             type: supported,
+             format: nil,
+             length: 0,
+             meta: %{}
+           }
+         ]}
     end
   end
 

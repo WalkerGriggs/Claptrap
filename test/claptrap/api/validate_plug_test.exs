@@ -125,6 +125,24 @@ defmodule Claptrap.API.ValidatePlugTest do
     end
   end
 
+  describe "unsupported content type" do
+    test "returns 422 for unsupported content type" do
+      conn =
+        :post
+        |> Plug.Test.conn("/api/v1/sources")
+        |> Plug.Conn.put_req_header(
+          "content-type",
+          "text/plain"
+        )
+        |> Map.put(:body_params, %{"type" => "rss"})
+        |> APIPlug.call(APIPlug.init([]))
+
+      assert conn.status == 422
+      body = Jason.decode!(conn.resp_body)
+      assert is_map(body["errors"])
+    end
+  end
+
   describe "DELETE requests pass through" do
     test "DELETE passes through without validation" do
       {:ok, source} =
