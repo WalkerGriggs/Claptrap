@@ -1,0 +1,30 @@
+---
+title: "API reference"
+description: "REST API for managing entries, sources, sinks, and
+  subscriptions in Claptrap."
+---
+
+Claptrap exposes a REST API at `/api/v1` for managing all catalog
+resources. The same domain functions are also available through the
+[MCP interface](/architecture/api-and-mcp) for AI agent integration.
+
+## Base URL
+
+```
+https://docs.claptrap.dev/api/v1
+```
+
+## Resources
+
+| Resource | Description |
+| --- | --- |
+| [Entries](/api-reference/entries/list-entries) | Normalized content records |
+| [Sources](/api-reference/sources/list-sources) | Upstream content origins |
+| [Sinks](/api-reference/sinks/list-sinks) | Delivery targets |
+| [Subscriptions](/api-reference/subscriptions/list-subscriptions) | Tag-based routing rules |
+
+## Response format
+
+All responses are JSON. Successful responses return the resource or
+list of resources directly. Error responses include a structured error
+object.

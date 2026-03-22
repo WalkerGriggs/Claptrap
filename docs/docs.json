@@ -1,0 +1,105 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "name": "Claptrap",
+  "theme": "mint",
+  "colors": {
+    "primary": "#6D28D9",
+    "light": "#8B5CF6",
+    "dark": "#5B21B6"
+  },
+
+  "api": {
+    "openapi": "openapi/v1.json"
+  },
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "href": "/"
+      },
+      {
+        "tab": "API reference",
+        "href": "/api-reference"
+      }
+    ],
+    "groups": [
+      {
+        "group": "Getting started",
+        "pages": [
+          "introduction",
+          "glossary"
+        ]
+      },
+      {
+        "group": "Architecture",
+        "pages": [
+          "architecture/system-overview",
+          "architecture/supervision-tree",
+          "architecture/catalog",
+          "architecture/consumer",
+          "architecture/producer",
+          "architecture/api-and-mcp",
+          "architecture/pubsub-and-data-flow",
+          "architecture/database-and-schema",
+          "architecture/config-and-secrets",
+          "architecture/observability",
+          "architecture/deployment-and-scaling",
+          "architecture/project-structure"
+        ]
+      },
+      {
+        "group": "Catalog resources",
+        "pages": [
+          "catalog/entries",
+          "catalog/sources",
+          "catalog/sinks",
+          "catalog/subscriptions"
+        ]
+      },
+      {
+        "group": "API reference",
+        "pages": [
+          "api-reference/introduction",
+          {
+            "group": "Entries",
+            "pages": [
+              "GET /entries",
+              "POST /entries",
+              "GET /entries/{id}",
+              "PATCH /entries/{id}"
+            ]
+          },
+          {
+            "group": "Sources",
+            "pages": [
+              "GET /sources",
+              "POST /sources",
+              "GET /sources/{id}",
+              "PATCH /sources/{id}",
+              "DELETE /sources/{id}"
+            ]
+          },
+          {
+            "group": "Sinks",
+            "pages": [
+              "GET /sinks",
+              "POST /sinks",
+              "GET /sinks/{id}",
+              "PATCH /sinks/{id}",
+              "DELETE /sinks/{id}"
+            ]
+          },
+          {
+            "group": "Subscriptions",
+            "pages": [
+              "GET /subscriptions",
+              "POST /subscriptions",
+              "GET /subscriptions/{id}",
+              "DELETE /subscriptions/{id}"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

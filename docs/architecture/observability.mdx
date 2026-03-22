@@ -1,0 +1,93 @@
+---
+title: "Observability"
+description: "Telemetry, logging, metrics, health endpoints, and
+  operational visibility in Claptrap."
+---
+
+Claptrap uses `:telemetry`, structured logging, Prometheus-oriented
+metrics export, and lightweight HTTP endpoints for observability.
+
+## Telemetry model
+
+The architecture separates observability into three channels:
+**logging**, **traces**, and **metrics**. Each serves a specific
+purpose without duplication.
+
+## Logging
+
+Structured logs capture contextual information for diagnosis. All log
+entries include:
+
+- `source_id` / `sink_id` — identifies the resource being processed
+- `timestamp` — ISO8601
+- `level` — debug, info, warn, error
+
+Key logging events: consumer start/stop, delivery attempts, retry
+events, deduplication decisions, configuration changes, database
+connection issues, HTTP endpoint access.
+
+## Traces
+
+Traces capture timing and duration data using `:telemetry` span events.
+Duration metrics are **not** duplicated as Prometheus metrics.
+
+| Event | Measurements | Metadata |
+| --- | --- | --- |
+| `[:claptrap, :consumer, :consume, :start]` | `system_time` | `source_id`, `source_type` |
+| `[:claptrap, :consumer, :consume, :stop]` | `duration` | `source_id`, `source_type`, `entry_count` |
+| `[:claptrap, :consumer, :consume, :exception]` | `duration` | `source_id`, `kind`, `reason`, `stacktrace` |
+| `[:claptrap, :producer, :delivery, :start]` | `system_time` | `sink_id`, `entry_count` |
+| `[:claptrap, :producer, :delivery, :stop]` | `duration` | `sink_id`, `entry_count`, `status` |
+| `[:claptrap, :producer, :delivery, :exception]` | `duration` | `sink_id`, `kind`, `reason`, `stacktrace` |
+| `[:claptrap, :catalog, :dedup, :start]` | `system_time` | `source_id`, `entry_count` |
+| `[:claptrap, :catalog, :dedup, :stop]` | `duration` | `source_id`, `total`, `new`, `duplicate` |
+
+Traces follow the `:telemetry.span/3` pattern. Exporters can convert
+to OpenTelemetry spans.
+
+## Metrics
+
+Metrics capture **domain state** and **throughput** — not timing.
+Exported via Prometheus.
+
+### Application domain metrics
+
+| Metric | Type | Labels |
+| --- | --- | --- |
+| `claptrap_consumer_entries_total` | Counter | `source_id`, `source_type` |
+| `claptrap_consumer_errors_total` | Counter | `source_id`, `reason` |
+| `claptrap_consumer_consecutive_failures` | Gauge | `source_id` |
+| `claptrap_producer_deliveries_total` | Counter | `sink_id`, `status` |
+| `claptrap_producer_retries_total` | Counter | `sink_id`, `attempt` |
+| `claptrap_catalog_dedup_total` | Counter | `source_id`, `outcome` |
+| `claptrap_catalog_entries_total` | Gauge | `source_id` |
+| `claptrap_sources_active` | Gauge | — |
+| `claptrap_sinks_active` | Gauge | — |
+
+### Bandit HTTP server metrics
+
+| Metric | Type | Labels |
+| --- | --- | --- |
+| `bandit_requests_total` | Counter | `method`, `path`, `status` |
+| `bandit_active_connections` | Gauge | — |
+| `bandit_request_errors_total` | Counter | `reason` |
+
+## Built-in endpoints
+
+| Endpoint | Purpose |
+| --- | --- |
+| `GET /metrics` | Prometheus-compatible metrics |
+| `GET /health` | Liveness check |
+| `GET /ready` | Readiness check (includes dependency checks) |
+
+## Operational intent
+
+The observability model is lightweight but appropriate for a v1 daemon:
+
+- **Traces** capture timing and latency
+- **Metrics** expose domain state and throughput for Prometheus
+- **Logs** provide contextual diagnostics
+
+No distributed tracing backend is required initially — trace events can
+be exported later. The model leaves room for OpenTelemetry exporters,
+Grafana dashboards, or log aggregation as needs evolve.

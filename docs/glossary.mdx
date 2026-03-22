@@ -1,0 +1,135 @@
+---
+title: "Glossary"
+description: "Core terminology used throughout Claptrap."
+---
+
+## Data entities
+
+### Entry
+
+The atomic unit of content in Claptrap. An entry represents a discrete
+piece of consumable information such as a blog post, news article, or
+conference talk. Within the cluster, all content is normalized to
+entries regardless of its original source format.
+
+Entry type (`:article`, `:video`, `:podcast`, `:book`, `:paper`) is
+determined per-entry by the consumer adapter based on content signals
+from the source protocol.
+
+### Source
+
+An external or upstream provider of content to consume into Claptrap
+(RSS feeds, YouTube channels, Zotero libraries, webhooks, APIs).
+
+A source is a configuration record in the Catalog (URL, credentials,
+and optionally a schedule). Each source has an associated **consumer
+adapter** that normalizes source-native content into entries.
+
+Sources may be **pull-triggered** (polled on an interval) or
+**push-triggered** (consumed via webhook calls).
+
+### Sink
+
+A downstream destination for entries (combined RSS feeds, webhooks,
+email digests, Slack channels).
+
+A sink is a configuration record in the Catalog. Each sink has an
+associated **producer adapter** that transforms entries into a
+sink-native representation.
+
+Sinks may be:
+- **Push sinks** — Claptrap actively sends entries (webhook, Slack,
+  email)
+- **Pull sinks** — Claptrap maintains a representation that downstream
+  clients fetch (RSS feed endpoint)
+
+### Subscription
+
+A rule that links sinks to sources based on **tag matching**.
+Subscriptions are stored as `{sink_id, tags[]}` — sinks subscribe to
+tags, not to specific sources.
+
+When entries are consumed, the `Producer.Router` matches each entry's
+resolved tag set against subscription tag sets using array overlap
+queries. Every subscription with at least one overlapping tag receives
+the entry for delivery to its sink.
+
+### Tag
+
+A string label used as the sole routing dimension in Claptrap. Tags
+connect sources to sinks indirectly.
+
+- **Source tags**: configured on source resources, inherited by every
+  entry consumed from that source
+- **Content-derived tags**: applied by consumer adapters during
+  consumption
+- **Entry tags**: the persisted union of inherited source tags and
+  content-derived tags
+
+Tag resolution is a write-time concern. Once persisted, the router
+operates entirely on the entry's tag set without looking up the source.
+
+## Subsystems
+
+### Catalog
+
+The central registry. Connects to PostgreSQL to manage all resource
+definitions (sources, sinks, subscriptions, entries). Provides a
+domain-facing API to surrounding processes.
+
+### Consumer
+
+A worker process that consumes entries from a source. One consumer
+process per configured source. Owns the lifecycle: scheduling, error
+handling, backoff, and persistence. Delegates protocol-specific work to
+a **consumer adapter**.
+
+### Producer
+
+A worker process that publishes entries to a sink. One producer process
+per configured sink. Owns the lifecycle: receiving entries from the
+Router, formatting, delivery or materialization, plus retry and backoff.
+Delegates protocol-specific work to a **producer adapter**.
+
+### API
+
+The external HTTP interface. Exposes REST endpoints for clients outside
+the cluster. Implemented with Plug + Bandit.
+
+### MCP
+
+The AI agent interface. A Model Context Protocol server that bridges
+agents to the same Catalog and API functions the REST API uses.
+
+## Adapters
+
+An adapter is a pure module (no process, no state) that transforms
+between the Entry format and a specific external protocol. Adapters
+implement a behaviour and are called by workers.
+
+### Consumer adapter
+
+Inbound adapter. Transforms source-native format into Entry attributes.
+Implements the `Consumer.Adapter` behaviour.
+
+### Producer adapter
+
+Outbound adapter. Transforms entries into sink-native format for
+delivery. Implements the `Producer.Adapter` behaviour.
+
+### Protocol overlap
+
+Some protocols (e.g., RSS) can be both a source and a sink. An RSS feed
+is a source when Claptrap reads it (`Consumer.Adapter.RSS`). An RSS
+feed is a sink when Claptrap generates one (`Producer.Adapter.RSS`).
+The adapter implementations are separate modules because the operations
+are different (parsing vs. generating).
+
+## Status
+
+The reading state of an entry:
+
+- **Unread**: new content not yet reviewed
+- **In progress**: currently being read or consumed
+- **Read**: completed
+- **Archived**: kept for reference

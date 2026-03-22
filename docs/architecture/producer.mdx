@@ -1,0 +1,112 @@
+---
+title: "Producer"
+description: "Routing, delivery workers, retries, adapters, and
+  ordering guarantees in the Producer subsystem."
+---
+
+The Producer subsystem packages entries from the database and delivers
+them to configured sinks.
+
+## Process model
+
+**One worker per sink.** Each combined RSS feed, webhook endpoint,
+email digest, and similar sink gets its own GenServer process. This
+mirrors the Consumer design: isolate state, isolate failures, and make
+per-sink retry behavior explicit.
+
+## Producer.Router
+
+`Producer.Router` is a single GenServer that owns the filtering and
+dispatch logic for entry delivery.
+
+### Responsibilities
+
+1. **Subscribe** — on init, subscribe to PubSub topic `entries:new`
+2. **Route and filter** — when `{:entries_ingested, source_id, entries}`
+   arrives, query the Catalog for matching subscriptions and match each
+   entry's resolved tag set against subscription tags
+3. **Fire-and-forget dispatch** — send `{:deliver, entries}` to each
+   matching `Producer.Worker`, then move on
+4. **Preserve decoupling** — consumer workers do not know about sinks;
+   the PubSub topic is the contract boundary
+
+### Tag-based subscription model
+
+Routing is intentionally simple for v1:
+
+- Entries carry a resolved tag set (union of source-inherited and
+  adapter-applied tags)
+- Sinks subscribe to tags via subscriptions
+- The Router resolves interest using array overlap (ANY semantics)
+
+### Why a separate Router exists
+
+The Router isolates delivery selection from consumption. Consumers
+publish events; Producers decide how those events fan out. That
+separation keeps the subsystems independently evolvable.
+
+## Producer.Worker
+
+Each producer worker delivers entries to its sink and retries on
+failure.
+
+### Lifecycle
+
+<Steps>
+  <Step title="Receive">
+    Accept `{:deliver, entries}` cast from the Router.
+  </Step>
+  <Step title="Package">
+    Call the appropriate `Producer.Adapter` to format entries.
+  </Step>
+  <Step title="Deliver">
+    For push sinks, send to the external destination. For pull sinks,
+    materialize or update a representation for later HTTP retrieval.
+  </Step>
+  <Step title="Retry on failure">
+    Retry with exponential backoff. On exhaustion, log the failure and
+    drop the batch. The Router is not involved in retry management.
+  </Step>
+</Steps>
+
+### Retry strategy
+
+- Exponential backoff: `500ms × 2^attempt + jitter`
+- Maximum backoff: 30s
+- Maximum attempts: 5
+- In-memory queue: Erlang `:queue`
+
+<Warning>
+  Retries are lost on restart. If guaranteed delivery is required, the
+  architecture recommends migrating this part of the pipeline to Oban.
+</Warning>
+
+## Producer.Adapter behaviour
+
+All sink types implement the `Producer.Adapter` behaviour:
+
+```elixir
+@callback mode() :: :push | :pull
+@callback push(sink, entries) :: :ok | {:error, term()}
+@callback materialize(sink, entries) :: :ok | {:error, term()}
+@callback validate_config(config) :: :ok | {:error, String.t()}
+```
+
+- `mode/0` — indicates push-delivered or pull-served
+- `push/2` — used for push sinks
+- `materialize/2` — used for pull sinks (e.g., generating RSS XML)
+
+Producer adapters package entries into sink-native formats, deliver
+output to endpoints, and handle authentication and rate limits.
+
+## Entry ordering
+
+Entries are delivered to sinks **in consumption order**.
+
+Each entry is timestamped at consume time using `ingested_at` with
+microsecond precision. The Router preserves ordering when dispatching,
+and workers deliver entries in the order received.
+
+For v1, `ingested_at` with type `:utc_datetime_usec` is the ordering
+key. A Lamport clock or monotonic per-sink sequence number can be added
+later as a tiebreaker without changing the external delivery contract.

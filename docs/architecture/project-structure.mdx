@@ -1,10 +1,12 @@
-# Project Structure
+---
+title: "Project structure"
+description: "Source tree layout and dependency mapping to the runtime
+  architecture."
+---
 
-This document maps the proposed source tree to the runtime architecture.
+## Layout
 
-## Proposed Layout
-
-```markdown
+```
 claptrap/
 ├── lib/
 │   ├── claptrap/
@@ -19,7 +21,7 @@ claptrap/
 │   │   │   ├── supervisor.ex         # Supervises coordinator + worker supervisor
 │   │   │   ├── coordinator.ex        # Bootstrap + periodic poll coordination
 │   │   │   ├── worker.ex             # GenServer per source
-│   │   │   └── adapter.ex            # Behaviour definition for consumer adapters
+│   │   │   └── adapter.ex            # Behaviour definition
 │   │   │
 │   │   ├── consumer/adapters/        # Consumer adapter implementations
 │   │   │   ├── rss.ex
@@ -31,7 +33,7 @@ claptrap/
 │   │   │   ├── supervisor.ex         # Supervises router + worker supervisor
 │   │   │   ├── router.ex             # PubSub subscriber, routes to sinks
 │   │   │   ├── worker.ex             # GenServer per sink
-│   │   │   └── adapter.ex            # Behaviour definition for producer adapters
+│   │   │   └── adapter.ex            # Behaviour definition
 │   │   │
 │   │   ├── producer/adapters/        # Producer adapter implementations
 │   │   │   ├── rss_feed.ex
@@ -44,11 +46,6 @@ claptrap/
 │   │   │   ├── router.ex             # Route definitions
 │   │   │   ├── auth.ex               # API key auth plug
 │   │   │   └── handlers/             # Request handlers by resource
-│   │   │       ├── entries.ex
-│   │   │       ├── sources.ex
-│   │   │       ├── sinks.ex
-│   │   │       ├── subscriptions.ex
-│   │   │       └── webhooks.ex
 │   │   │
 │   │   ├── mcp/
 │   │   │   └── server.ex             # MCP protocol handler
@@ -63,55 +60,42 @@ claptrap/
 │   │
 │   └── claptrap/api_server.ex        # Bandit child spec / HTTP startup
 │
-├── priv/
-│   └── repo/
-│       └── migrations/
-│
+├── priv/repo/migrations/
 ├── config/
-│   ├── config.exs                    # Compile-time shared config
+│   ├── config.exs
 │   ├── dev.exs
 │   ├── test.exs
 │   ├── prod.exs
-│   └── runtime.exs                   # Runtime config (env vars)
+│   └── runtime.exs
 │
 ├── test/                             # Tests mirror lib/ structure
-│
-├── mix.exs                           # Project definition + dependencies
-└── mix.lock                          # Locked dependency versions
+├── mix.exs
+└── mix.lock
 ```
 
-## Mapping Structure to Runtime Architecture
+## Mapping to runtime architecture
 
-The project layout tracks the runtime subsystem boundaries closely:
+The project layout tracks runtime subsystem boundaries:
 
-- `application.ex` defines the supervision tree root
-- `catalog/` maps to the central registry and persistence boundary
-- `consumer/` maps to source consumption concerns
-- `producer/` maps to sink delivery concerns
-- `api/` and `mcp/` expose external interfaces
-- `schemas/` hold Ecto persistence types and validation boundaries
-- `telemetry.ex` centralizes observability hooks
+| Directory | Runtime mapping |
+| --- | --- |
+| `application.ex` | Supervision tree root |
+| `catalog/` | Central registry and persistence boundary |
+| `consumer/` | Source consumption concerns |
+| `producer/` | Sink delivery concerns |
+| `api/` and `mcp/` | External interfaces |
+| `schemas/` | Ecto persistence types and validation |
+| `telemetry.ex` | Observability hooks |
 
-This is a good code organization choice because it mirrors the operational model rather than organizing only by transport layer or framework concern.
-
-## Key Dependencies
+## Key dependencies
 
 | Dependency | Purpose |
 | --- | --- |
 | `plug` | HTTP abstraction and request pipeline |
 | `bandit` | HTTP server |
-| `ecto_sql` + `postgrex` | PostgreSQL access, connection pooling, and migrations |
+| `ecto_sql` + `postgrex` | PostgreSQL access and migrations |
 | `phoenix_pubsub` | Internal event bus |
 | `req` | HTTP client for adapter fetches |
 | `floki` | HTML parsing for content extraction |
 | `jason` | JSON encoding and decoding |
 | `cloak_ecto` | Credential encryption at rest |
-
-## Design Intent
-
-The proposed file layout is not arbitrary. It is explicitly aligned with:
-
-- supervision boundaries
-- subsystem ownership
-- behaviour-based adapter extensibility
-- clear separation between domain logic and the thin HTTP adapter layer

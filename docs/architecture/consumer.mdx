@@ -1,0 +1,118 @@
+---
+title: "Consumer"
+description: "Consumption model, worker lifecycle, retries, adapters,
+  and push-source handling in the Consumer subsystem."
+---
+
+The Consumer subsystem consumes external sources, whether pull- or
+push-triggered, normalizes their content into entries, and persists
+them to the database.
+
+## Process model
+
+**One worker per source.** Each RSS feed, YouTube subscription, Zotero
+library, and similar source gets its own GenServer process. This
+provides:
+
+- **Isolated state**: each source has its own last-consume timestamp,
+  error count, and backoff timer
+- **Isolated failures**: one broken source does not affect others
+- **Independent scheduling**: pull sources manage their own poll
+  interval
+- **Natural backpressure**: each worker implements its own rate
+  limiting and retry behavior
+
+## Worker lifecycle
+
+Each worker follows this lifecycle:
+
+<Steps>
+  <Step title="Init">
+    Load source config from Catalog, decrypt credentials, initialize
+    worker state.
+  </Step>
+  <Step title="Consume cycle">
+    Fetch or accept input via the consumer adapter. Normalize raw
+    content into Entry structs. Deduplicate via `Catalog.create_entry`
+    using `ON CONFLICT DO NOTHING`. Broadcast
+    `{:entries_ingested, source_id, entries}` to PubSub. For pull
+    sources, schedule the next poll.
+  </Step>
+  <Step title="Restart">
+    If the worker crashes, the DynamicSupervisor restarts it with
+    fresh state. On restart, the worker immediately triggers a consume
+    cycle instead of waiting for the next poll interval.
+  </Step>
+</Steps>
+
+The immediate post-restart poll minimizes recovery latency after
+transient failures.
+
+## Retry on poll failure
+
+When a consume cycle fails (HTTP errors, parse failures, timeouts), the
+worker retries up to **5 times** with exponential backoff:
+
+- **Initial backoff**: 500ms
+- **Formula**: `min(500ms × 2^attempt + jitter, 30s)` where jitter is
+  0–100ms
+- **Progression**: ~500ms → 1s → 2s → 4s → 8s, capped at 30s
+- **On exhaustion**: log the error, skip the cycle, resume normal poll
+  schedule
+
+Retries are scoped to a single consume cycle. The retry counter resets
+on each new scheduled poll.
+
+## Consumer.Adapter behaviour
+
+All source types implement the `Consumer.Adapter` behaviour:
+
+```elixir
+@callback mode() :: :pull | :push
+@callback fetch(source) :: {:ok, [raw_attrs]} | {:error, term()}
+@callback ingest(source, input) :: {:ok, [raw_attrs]} | {:error, term()}
+@callback validate_config(config) :: :ok | {:error, String.t()}
+```
+
+- `mode/0` — indicates whether the coordinator schedules polls
+- `fetch/1` — used for pull sources
+- `ingest/2` — used for push sources (webhook payload consumption)
+
+Adapters handle fetching raw content, parsing and normalizing into
+entry attributes, and source-specific concerns like pagination, rate
+limits, and authentication.
+
+## Error handling philosophy
+
+Consumer adapters follow a "let it crash" model with clear
+distinctions:
+
+### Wrong → raise and crash
+
+Authentication failures, invalid configuration, violated invariants,
+programmer bugs. Retrying will not fix these. The adapter raises, the
+worker crashes, the supervisor restarts it from clean state.
+
+### Incomplete → heal and continue
+
+Missing `published_at`, missing author, truncated description. This
+data may not exist upstream. Adapters fill sensible defaults, skip
+optional fields, and fall back when necessary.
+
+### Transient failures → return `{:error, reason}`
+
+HTTP 5xx, timeouts, connection refused. Expected operational
+conditions. The adapter returns an error tuple and the worker applies
+retry and backoff logic. Not crash-worthy.
+
+## Coordinator role
+
+`Consumer.Coordinator` is responsible for:
+
+- Bootstrapping workers for all enabled sources at init time
+- Periodically querying the Catalog for pull sources due to poll
+- Sending `:poll` messages to the appropriate workers
+
+Push-based sources do not rely on scheduled polling. The API layer
+receives inbound webhook traffic and enqueues consumption work into the
+matching Consumer worker.

@@ -1,0 +1,74 @@
+---
+title: "Introduction"
+description: "Claptrap is an Elixir/OTP content aggregation system
+  that consumes content from external sources, normalizes it, and
+  delivers it to downstream sinks."
+---
+
+Claptrap is structured as a set of Elixir/OTP processes that consume
+content from external sources, normalize it into a common internal
+representation, and deliver it to downstream sinks.
+
+## Core data flow
+
+```
+Source → Consumer → Entry → Producer → Sink
+```
+
+Within the cluster, everything is an **Entry** — the atomic unit of
+content. Sources provide raw content, consumers normalize it, producers
+package it, and sinks receive the output.
+
+## Subsystems
+
+| Subsystem | Responsibility |
+| --- | --- |
+| **Catalog** | Central registry. Manages all resource definitions (sources, sinks, subscriptions, entries) in PostgreSQL. |
+| **Consumer** | Source consumption. One worker per source. Normalizes content into entries via consumer adapters. |
+| **Producer** | Feed delivery. One worker per sink. Packages entries into output formats via producer adapters. |
+| **API** | External HTTP interface. REST endpoints, webhooks, and pull sink URLs via Plug + Bandit. |
+| **MCP** | AI agent interface. Model Context Protocol server over HTTP/SSE. |
+
+## Roles vs transport
+
+Consumer and Producer are directional roles across the Claptrap
+boundary, not a statement about who initiates I/O.
+
+- **Consumer** = ingress into Claptrap (external → Entry)
+- **Producer** = egress out of Claptrap (Entry → external)
+
+**Push vs pull** describes the transport mode at the boundary:
+
+- **Pull source**: Claptrap polls on a schedule (RSS, YouTube, APIs)
+- **Push source**: an external system calls Claptrap (webhooks)
+- **Push sink**: Claptrap delivers to the destination (webhooks, Slack,
+  email)
+- **Pull sink**: Claptrap materializes an artifact for downstream
+  clients to fetch (RSS feed served over HTTP)
+
+## Architecture diagram
+
+```
+External Sources                    External Sinks
+(RSS, YouTube, Zotero, etc.)        (RSS feeds, webhooks, email, etc.)
+        │                                    ▲
+        ▼                                    │
+┌───────────────────┐              ┌─────────────────────┐
+│     Consumer      │              │      Producer       │
+│ Consumer Adapters │              │  Producer Adapters  │
+│ normalize → entry │              │ entry → output fmt  │
+└────────┬──────────┘              └──────────▲──────────┘
+         │                                    │
+         ▼                                    │
+┌─────────────────────────────────────────────────────────┐
+│                      Catalog                            │
+│                    (PostgreSQL)                         │
+│       sources, entries, subscriptions, sinks            │
+└──────────┬────────────────────────────┬─────────────────┘
+           │                            │
+           ▼                            ▼
+   ┌──────────────┐            ┌──────────────┐
+   │     API      │            │     MCP      │
+   │  REST/HTTP   │            │  JSON-RPC    │
+   └──────────────┘            └──────────────┘
+```

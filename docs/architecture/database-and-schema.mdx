@@ -1,0 +1,97 @@
+---
+title: "Database and schema"
+description: "Tables, deduplication model, JSONB usage, and
+  persistence concerns in Claptrap's PostgreSQL schema."
+---
+
+Claptrap uses PostgreSQL with Ecto for persistence.
+
+## Core tables
+
+### entries
+
+The atomic unit of content within the cluster.
+
+| Column | Type | Notes |
+| --- | --- | --- |
+| `id` | UUID | Primary key |
+| `source_id` | UUID | References sources |
+| `external_id` | VARCHAR | Identifier from the source system |
+| `title` | VARCHAR | |
+| `summary` | VARCHAR | |
+| `url` | VARCHAR | |
+| `author` | VARCHAR | |
+| `published_at` | TIMESTAMPTZ | |
+| `status` | ENUM | `unread`, `in_progress`, `read`, `archived` |
+| `metadata` | JSONB | Flexible attributes |
+| `tags` | TEXT[] | User-defined tags |
+
+UNIQUE constraint on `(external_id, source_id)` for deduplication.
+
+### sources
+
+External or upstream data providers.
+
+| Column | Type | Notes |
+| --- | --- | --- |
+| `id` | UUID | Primary key |
+| `type` | VARCHAR | `rss`, `youtube`, `zotero`, etc. |
+| `name` | VARCHAR | User-friendly name |
+| `config` | JSONB | Source-specific configuration |
+| `credentials` | JSONB | Encrypted credentials |
+| `enabled` | BOOLEAN | |
+| `last_consumed_at` | TIMESTAMPTZ | Last successful consume |
+| `tags` | TEXT[] | Tags for subscription matching |
+
+### sinks
+
+Downstream destinations for entries.
+
+| Column | Type | Notes |
+| --- | --- | --- |
+| `id` | UUID | Primary key |
+| `type` | VARCHAR | `rss_feed`, `webhook`, `email`, etc. |
+| `name` | VARCHAR | |
+| `config` | JSONB | Sink-specific configuration |
+| `credentials` | JSONB | Encrypted credentials |
+| `enabled` | BOOLEAN | |
+
+### subscriptions
+
+Links sinks to source tags using pure tag-based routing.
+
+| Column | Type | Notes |
+| --- | --- | --- |
+| `id` | UUID | Primary key |
+| `sink_id` | UUID | References sinks |
+| `tags` | TEXT[] | Overlapping tag subscription |
+
+Indexes: `sink_id`, GIN index on `tags` for `&&` operator.
+
+## Why JSONB for config and metadata
+
+Each source and sink type has materially different configuration
+requirements (RSS needs a URL, YouTube needs a channel ID, Zotero needs
+OAuth tokens).
+
+JSONB allows the schema to remain stable while adapter-specific
+configuration evolves. Validation still happens explicitly through
+`validate_config/1` on each adapter.
+
+## Deduplication model
+
+Deduplication is handled at the database layer using Ecto's
+`on_conflict: :nothing` with a conflict target of
+`[:external_id, :source_id]`. Re-running a poll against the same source
+is safe and idempotent.
+
+## Persistence boundary
+
+The database anchors several correctness properties:
+
+- Entry deduplication
+- Source and sink configuration persistence
+- Subscription routing metadata
+- Restart-safe canonical state for the system's topology
+
+PostgreSQL is the primary durable boundary of the system.

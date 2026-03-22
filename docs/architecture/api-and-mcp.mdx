@@ -1,0 +1,102 @@
+---
+title: "API and MCP"
+description: "HTTP API design, webhook boundaries, and MCP interface
+  for AI agent integration."
+---
+
+Claptrap exposes two external interfaces over the same underlying
+domain model: a conventional HTTP API and an MCP interface for AI
+agents.
+
+## API: external HTTP interface
+
+### Plug Router + Bandit Server
+
+The HTTP layer is a **Plug** application served by **Bandit**:
+
+- **REST API** for CRUD operations on sources, sinks, entries, and
+  subscriptions
+- **Webhook receivers** for push-based source integrations
+- **Pull sink endpoints** that serve materialized representations
+  (e.g., RSS XML)
+- **MCP transport endpoints** for HTTP/SSE-based agent integration
+
+### Why Plug + Bandit
+
+Plug keeps the request/response boundary explicit and small. Bandit
+provides a modern BEAM-native HTTP server without Phoenix web-layer
+conventions. Claptrap is an OTP system first, with HTTP as an adapter
+at the edge.
+
+## REST endpoints
+
+```
+Entries:
+  GET    /api/v1/entries              List entries (paginated, filterable)
+  GET    /api/v1/entries/{id}         Get single entry
+  PATCH  /api/v1/entries/{id}         Update entry (read status, tags)
+
+Sources:
+  GET    /api/v1/sources              List sources
+  POST   /api/v1/sources              Create source
+  PATCH  /api/v1/sources/{id}         Update source
+  DELETE /api/v1/sources/{id}         Delete source
+  POST   /api/v1/sources/{id}/consume Trigger consumption
+
+Sinks:
+  GET    /api/v1/sinks                List sinks
+  POST   /api/v1/sinks                Create sink
+  PATCH  /api/v1/sinks/{id}           Update sink
+  DELETE /api/v1/sinks/{id}           Delete sink
+
+Subscriptions:
+  GET    /api/v1/subscriptions        List subscriptions
+  POST   /api/v1/subscriptions        Create subscription
+  DELETE /api/v1/subscriptions/{id}   Remove subscription
+```
+
+## Webhook receivers and pull sink endpoints
+
+Push-based sources terminate at the HTTP layer, but the HTTP layer does
+minimal work:
+
+1. Verify or authenticate the request
+2. Identify the `source_id`
+3. Enqueue consumption into the corresponding `Consumer.Worker`
+4. Return 2xx quickly
+
+Parsing, normalization, deduplication, persistence, and downstream
+event emission remain the Consumer's responsibility.
+
+For pull sinks, the HTTP layer serves materialized artifacts such as
+generated RSS feeds.
+
+## MCP: AI agent interface
+
+### Claptrap.MCP.Server
+
+`Claptrap.MCP.Server` is a GenServer that speaks the Model Context
+Protocol for AI agent integration.
+
+### Transport
+
+HTTP/SSE via the Plug interface. This avoids requiring Claptrap to run
+as a subprocess of the AI client.
+
+### Capabilities
+
+The MCP layer can:
+
+- Query entries with structured filters
+- Mark entries as read or archived
+- Trigger consumption and run consumers
+- Browse catalog resources
+
+## Single data path principle
+
+The MCP server routes requests to the same Catalog and domain functions
+the REST API uses. It is not a distinct backend — it is an alternative
+interface to the same system.
+
+This prevents feature drift between human-facing and agent-facing
+control planes.

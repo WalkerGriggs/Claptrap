@@ -1,0 +1,73 @@
+---
+title: "PubSub and data flow"
+description: "Internal event bus, topic contracts, and subsystem
+  boundaries in Claptrap's data flow."
+---
+
+## End-to-end data flow
+
+```
+Source → Consumer (via Consumer.Adapter) → Entry → Producer (via Producer.Adapter) → Sink
+```
+
+Claptrap's architectural center of gravity is the **Entry**.
+
+- Sources are external upstream systems
+- Consumers normalize source-native representations into entries
+- Producers transform entries into sink-native representations
+- Sinks are downstream destinations
+
+Within the cluster, everything is an Entry.
+
+## Boundary semantics
+
+Consumer versus Producer is defined by direction across the Claptrap
+boundary, not by who initiates the network call.
+
+### Source side
+
+- Pull sources are scheduled and polled by Claptrap
+- Push sources call Claptrap through webhooks; the HTTP layer enqueues
+  work into the correct Consumer worker
+
+### Sink side
+
+- Push sinks are actively delivered to by Claptrap
+- Pull sinks are materialized and served via HTTP when requested
+
+## Internal event bus
+
+Claptrap uses **Phoenix.PubSub** as the internal event bus. This is an
+independent library from the Phoenix ecosystem, not a commitment to
+Phoenix as the web framework.
+
+It replaces the need for an external message queue like NATS or
+RabbitMQ for the initial architecture.
+
+## Key topics
+
+| Topic | Publishers | Subscribers | Event shape |
+| --- | --- | --- | --- |
+| `entries:new` | Consumer.Workers | Producer.Router | `{:entries_ingested, source_id, entries}` |
+| `catalog:changed` | Catalog.Server | Consumer.Coordinator, Producer.Router | `{:resource_changed, type, action, id}` |
+
+## Why Phoenix.PubSub
+
+- **No external dependency**: PubSub is a library, not a daemon
+- **No serialization overhead**: messages are native Elixir terms
+- **Topic-based fanout**: multiple subscribers react to the same event
+- **Distributed by default**: messages flow across Erlang nodes if
+  clustered later
+- **Lower latency**: in-process message passing is extremely cheap
+
+## Contract boundary
+
+PubSub is also the subsystem contract boundary.
+
+- Consumers do not know about sinks
+- Producers do not need to know how consumption was performed
+- The Router depends only on the event shape, not on consumer
+  implementation details
+
+This keeps subsystem boundaries explicit while avoiding heavier
+distributed systems machinery too early.
