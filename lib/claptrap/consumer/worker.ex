@@ -6,10 +6,10 @@ defmodule Claptrap.Consumer.Worker do
   require Logger
 
   alias Claptrap.Catalog
+  alias Claptrap.Catalog.Source
   alias Claptrap.Consumer.Adapters.RSS
   alias Claptrap.PubSub
   alias Claptrap.Registry
-  alias Claptrap.Schemas.Source
 
   @default_poll_interval :timer.minutes(15)
   @default_retry_base_interval 500

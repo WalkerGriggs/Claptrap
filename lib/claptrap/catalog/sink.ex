@@ -1,4 +1,4 @@
-defmodule Claptrap.Schemas.Sink do
+defmodule Claptrap.Catalog.Sink do
   @moduledoc false
 
   use Ecto.Schema
@@ -16,7 +16,7 @@ defmodule Claptrap.Schemas.Sink do
     field :credentials, :map
     field :enabled, :boolean, default: true
 
-    has_many :subscriptions, Claptrap.Schemas.Subscription
+    has_many :subscriptions, Claptrap.Catalog.Subscription
 
     timestamps(type: :utc_datetime_usec)
   end
