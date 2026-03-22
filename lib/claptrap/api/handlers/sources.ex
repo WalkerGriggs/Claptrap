@@ -3,6 +3,7 @@ defmodule Claptrap.API.Handlers.Sources do
 
   use Plug.Router
 
+  alias Claptrap.API.Serializers
   alias Claptrap.Catalog
   alias Claptrap.Pagination
   import Claptrap.API.Helpers
@@ -13,26 +14,27 @@ defmodule Claptrap.API.Handlers.Sources do
   get "/" do
     opts = Pagination.params_to_opts(conn.query_params)
     page = Catalog.list_sources(opts)
-    json(conn, 200, Pagination.to_response(page))
+    response = Pagination.to_response(page)
+    json(conn, 200, %{response | items: Enum.map(response.items, &Serializers.serialize/1)})
   end
 
   post "/" do
     case Catalog.create_source(conn.body_params) do
-      {:ok, source} -> json(conn, 201, source)
+      {:ok, source} -> json(conn, 201, Serializers.serialize(source))
       {:error, changeset} -> json(conn, 422, %{errors: changeset_errors(changeset)})
     end
   end
 
   get "/:id" do
     source = Catalog.get_source!(id)
-    json(conn, 200, source)
+    json(conn, 200, Serializers.serialize(source))
   end
 
   patch "/:id" do
     source = Catalog.get_source!(id)
 
     case Catalog.update_source(source, conn.body_params) do
-      {:ok, updated} -> json(conn, 200, updated)
+      {:ok, updated} -> json(conn, 200, Serializers.serialize(updated))
       {:error, changeset} -> json(conn, 422, %{errors: changeset_errors(changeset)})
     end
   end

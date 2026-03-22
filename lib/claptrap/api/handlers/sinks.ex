@@ -3,6 +3,7 @@ defmodule Claptrap.API.Handlers.Sinks do
 
   use Plug.Router
 
+  alias Claptrap.API.Serializers
   alias Claptrap.Catalog
   alias Claptrap.Pagination
   import Claptrap.API.Helpers
@@ -13,26 +14,27 @@ defmodule Claptrap.API.Handlers.Sinks do
   get "/" do
     opts = Pagination.params_to_opts(conn.query_params)
     page = Catalog.list_sinks(opts)
-    json(conn, 200, Pagination.to_response(page))
+    response = Pagination.to_response(page)
+    json(conn, 200, %{response | items: Enum.map(response.items, &Serializers.serialize/1)})
   end
 
   post "/" do
     case Catalog.create_sink(conn.body_params) do
-      {:ok, sink} -> json(conn, 201, sink)
+      {:ok, sink} -> json(conn, 201, Serializers.serialize(sink))
       {:error, changeset} -> json(conn, 422, %{errors: changeset_errors(changeset)})
     end
   end
 
   get "/:id" do
     sink = Catalog.get_sink!(id)
-    json(conn, 200, sink)
+    json(conn, 200, Serializers.serialize(sink))
   end
 
   patch "/:id" do
     sink = Catalog.get_sink!(id)
 
     case Catalog.update_sink(sink, conn.body_params) do
-      {:ok, updated} -> json(conn, 200, updated)
+      {:ok, updated} -> json(conn, 200, Serializers.serialize(updated))
       {:error, changeset} -> json(conn, 422, %{errors: changeset_errors(changeset)})
     end
   end
