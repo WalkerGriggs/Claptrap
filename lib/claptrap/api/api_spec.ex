@@ -19,6 +19,7 @@ defmodule Claptrap.API.ApiSpec do
         Operations.Sources.paths()
         |> Map.merge(Operations.Subscriptions.paths())
         |> Map.merge(Operations.Entries.paths())
+        |> Map.merge(Operations.Sinks.paths())
     }
     |> OpenApiSpex.resolve_schema_modules()
   end
