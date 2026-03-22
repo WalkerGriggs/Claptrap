@@ -2,7 +2,7 @@ defmodule Claptrap.API.ApiSpecTest do
   use ExUnit.Case, async: true
 
   alias Claptrap.API.ApiSpec
-  alias OpenApiSpex.{Info, OpenApi, Server}
+  alias OpenApiSpex.{OpenApi, Server}
 
   describe "spec/0" do
     test "returns an OpenApi struct" do
