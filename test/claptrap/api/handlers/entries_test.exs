@@ -45,7 +45,7 @@ defmodule Claptrap.API.Handlers.EntriesTest do
     test "returns empty list" do
       conn = call(:get, "/api/v1/entries")
       assert conn.status == 200
-      assert Jason.decode!(conn.resp_body) == []
+      assert %{"items" => []} = Jason.decode!(conn.resp_body)
     end
 
     test "returns entries" do
@@ -54,70 +54,24 @@ defmodule Claptrap.API.Handlers.EntriesTest do
 
       conn = call(:get, "/api/v1/entries")
       assert conn.status == 200
-      assert [%{"title" => "Title"}] = Jason.decode!(conn.resp_body)
+      assert %{"items" => [%{"title" => "Title"}]} = Jason.decode!(conn.resp_body)
     end
 
-    test "filters by status" do
+    test "paginates with page_size and page_token" do
       {:ok, source} = create_source()
-      {:ok, _} = create_entry(source.id, %{status: "unread"})
-      {:ok, _} = create_entry(source.id, %{status: "read"})
+      for _ <- 1..3, do: {:ok, _} = create_entry(source.id)
 
-      conn = call(:get, "/api/v1/entries?status=unread")
-      entries = Jason.decode!(conn.resp_body)
-      assert length(entries) == 1
-      assert hd(entries)["status"] == "unread"
-    end
+      # First page
+      conn = call(:get, "/api/v1/entries?page_size=2")
+      body = Jason.decode!(conn.resp_body)
+      assert length(body["items"]) == 2
+      assert body["next_page_token"]
 
-    test "filters by source_id" do
-      {:ok, s1} = create_source()
-      {:ok, s2} = Catalog.create_source(%{@source_attrs | name: "Other"})
-      {:ok, _} = create_entry(s1.id)
-      {:ok, _} = create_entry(s2.id)
-
-      conn = call(:get, "/api/v1/entries?source_id=#{s1.id}")
-      entries = Jason.decode!(conn.resp_body)
-      assert length(entries) == 1
-      assert hd(entries)["source_id"] == s1.id
-    end
-
-    test "supports limit" do
-      {:ok, source} = create_source()
-      for _ <- 1..5, do: {:ok, _} = create_entry(source.id)
-
-      conn = call(:get, "/api/v1/entries?limit=2")
-      entries = Jason.decode!(conn.resp_body)
-      assert length(entries) == 2
-    end
-
-    test "ignores negative limit" do
-      {:ok, source} = create_source()
-      {:ok, _} = create_entry(source.id)
-
-      conn = call(:get, "/api/v1/entries?limit=-1")
-      assert conn.status == 200
-      assert length(Jason.decode!(conn.resp_body)) == 1
-    end
-
-    test "ignores zero limit" do
-      {:ok, source} = create_source()
-      {:ok, _} = create_entry(source.id)
-
-      conn = call(:get, "/api/v1/entries?limit=0")
-      assert conn.status == 200
-      assert length(Jason.decode!(conn.resp_body)) == 1
-    end
-
-    test "returns entries ordered by inserted_at desc by default" do
-      {:ok, source} = create_source()
-      {:ok, old} = create_entry(source.id, %{title: "Old"})
-      # Ensure different inserted_at timestamps
-      Process.sleep(10)
-      {:ok, recent} = create_entry(source.id, %{title: "Recent"})
-
-      conn = call(:get, "/api/v1/entries")
-      entries = Jason.decode!(conn.resp_body)
-      assert hd(entries)["id"] == recent.id
-      assert List.last(entries)["id"] == old.id
+      # Second page exhausts results
+      conn = call(:get, "/api/v1/entries?page_size=2&page_token=#{body["next_page_token"]}")
+      body = Jason.decode!(conn.resp_body)
+      assert length(body["items"]) == 1
+      refute Map.has_key?(body, "next_page_token")
     end
   end
 

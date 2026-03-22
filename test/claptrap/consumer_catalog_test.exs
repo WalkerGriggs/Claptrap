@@ -245,7 +245,7 @@ defmodule Claptrap.Integration.ConsumerCatalogTest do
           )
       end
 
-      entries = Catalog.list_entries(source_id: source.id, order: :external_id)
+      entries = Catalog.list_entries(source_id: source.id)
       titles = Enum.map(entries, & &1.title)
 
       assert MapSet.new(["Title 1", "Title 2", "Title 3"]) == MapSet.new(titles)

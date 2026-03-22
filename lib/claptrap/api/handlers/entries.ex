@@ -4,15 +4,16 @@ defmodule Claptrap.API.Handlers.Entries do
   use Plug.Router
 
   alias Claptrap.Catalog
+  alias Claptrap.Pagination
   import Claptrap.API.Helpers
 
   plug(:match)
   plug(:dispatch)
 
   get "/" do
-    opts = filter_opts(conn.query_params)
-    entries = Catalog.list_entries(opts)
-    json(conn, 200, entries)
+    opts = Pagination.params_to_opts(conn.query_params)
+    page = Catalog.list_entries(opts)
+    json(conn, 200, Pagination.to_response(page))
   end
 
   get "/:id" do
@@ -31,24 +32,5 @@ defmodule Claptrap.API.Handlers.Entries do
 
   match _ do
     send_resp(conn, 404, Jason.encode!(%{error: "not found"}))
-  end
-
-  defp filter_opts(params) do
-    [order: {:desc, :inserted_at}]
-    |> maybe_add(:status, params["status"])
-    |> maybe_add(:source_id, params["source_id"])
-    |> maybe_add_limit(params["limit"])
-  end
-
-  defp maybe_add(opts, _key, nil), do: opts
-  defp maybe_add(opts, key, value), do: Keyword.put(opts, key, value)
-
-  defp maybe_add_limit(opts, nil), do: opts
-
-  defp maybe_add_limit(opts, value) do
-    case Integer.parse(value) do
-      {int, ""} when int > 0 -> Keyword.put(opts, :limit, int)
-      _ -> opts
-    end
   end
 end
