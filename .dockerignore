@@ -1,0 +1,15 @@
+.git
+.github
+.devcontainer
+.factory
+_build
+cover
+deps
+doc
+docs
+test
+erl_crash.dump
+*.md
+.formatter.exs
+.gitignore
+.tool-versions
