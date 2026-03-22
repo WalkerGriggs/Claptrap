@@ -15,7 +15,9 @@ defmodule Claptrap.API.ApiSpec do
         description: "Content ingestion and delivery API"
       },
       servers: [%Server{url: "/api/v1"}],
-      paths: Operations.Sources.paths()
+      paths:
+        Operations.Sources.paths()
+        |> Map.merge(Operations.Subscriptions.paths())
     }
     |> OpenApiSpex.resolve_schema_modules()
   end

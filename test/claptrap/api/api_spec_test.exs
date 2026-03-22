@@ -21,5 +21,12 @@ defmodule Claptrap.API.ApiSpecTest do
       assert Map.has_key?(paths, "/sources")
       assert Map.has_key?(paths, "/sources/{id}")
     end
+
+    test "includes Subscriptions paths" do
+      %OpenApi{paths: paths} = ApiSpec.spec()
+
+      assert Map.has_key?(paths, "/subscriptions")
+      assert Map.has_key?(paths, "/subscriptions/{id}")
+    end
   end
 end
