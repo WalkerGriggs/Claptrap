@@ -47,7 +47,6 @@ defmodule Claptrap.API.Handlers.SubscriptionsTest do
 
       for tag <- ~w(a b c) do
         {:ok, _} = Catalog.create_subscription(%{sink_id: sink.id, tags: [tag]})
-        Process.sleep(10)
       end
 
       conn = call(:get, "/api/v1/subscriptions?page_size=2")

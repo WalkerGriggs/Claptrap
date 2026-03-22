@@ -41,7 +41,6 @@ defmodule Claptrap.API.Handlers.SourcesTest do
     test "paginates with page_size and page_token" do
       for i <- 1..3 do
         {:ok, _} = Catalog.create_source(%{@source_attrs | name: "Feed #{i}"})
-        Process.sleep(10)
       end
 
       # First page

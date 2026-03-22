@@ -41,7 +41,6 @@ defmodule Claptrap.API.Handlers.SinksTest do
     test "paginates with page_size and page_token" do
       for i <- 1..3 do
         {:ok, _} = Catalog.create_sink(%{@sink_attrs | name: "Hook #{i}"})
-        Process.sleep(10)
       end
 
       conn = call(:get, "/api/v1/sinks?page_size=2")
