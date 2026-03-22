@@ -16,6 +16,13 @@ defmodule Claptrap.API.Handlers.Entries do
     json(conn, 200, Pagination.to_response(page))
   end
 
+  post "/" do
+    case Catalog.create_entry(conn.body_params) do
+      {:ok, entry} -> json(conn, 201, entry)
+      {:error, changeset} -> json(conn, 422, %{errors: changeset_errors(changeset)})
+    end
+  end
+
   get "/:id" do
     entry = Catalog.get_entry!(id)
     json(conn, 200, entry)

@@ -75,6 +75,52 @@ defmodule Claptrap.API.Handlers.EntriesTest do
     end
   end
 
+  describe "POST /api/v1/entries" do
+    test "creates an entry with valid params" do
+      {:ok, source} = create_source()
+
+      body = %{
+        "source_id" => source.id,
+        "external_id" => "ext-1",
+        "title" => "New Entry",
+        "status" => "unread"
+      }
+
+      conn = call(:post, "/api/v1/entries", body)
+      assert conn.status == 201
+
+      resp = Jason.decode!(conn.resp_body)
+      assert resp["title"] == "New Entry"
+      assert resp["source_id"] == source.id
+      assert resp["id"]
+    end
+
+    test "returns 422 with missing required fields" do
+      conn = call(:post, "/api/v1/entries", %{})
+      assert conn.status == 422
+
+      resp = Jason.decode!(conn.resp_body)
+      assert resp["errors"]
+    end
+
+    test "returns 422 with invalid status value" do
+      {:ok, source} = create_source()
+
+      body = %{
+        "source_id" => source.id,
+        "external_id" => "ext-1",
+        "title" => "Bad Status",
+        "status" => "invalid"
+      }
+
+      conn = call(:post, "/api/v1/entries", body)
+      assert conn.status == 422
+
+      resp = Jason.decode!(conn.resp_body)
+      assert resp["errors"]["status"]
+    end
+  end
+
   describe "GET /api/v1/entries/:id" do
     test "returns an entry" do
       {:ok, source} = create_source()
