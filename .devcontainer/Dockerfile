@@ -1,4 +1,4 @@
-FROM elixir:1.19.2-otp-27
+FROM elixir:1.19.5-otp-28
 
 RUN apt-get update && apt-get install -y \
       git \
