@@ -4,9 +4,6 @@ defmodule Claptrap.Catalog.Source do
   use Ecto.Schema
   import Ecto.Changeset
 
-  @derive {Jason.Encoder,
-           only: [:id, :type, :name, :config, :enabled, :last_consumed_at, :tags, :inserted_at, :updated_at]}
-
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
 
