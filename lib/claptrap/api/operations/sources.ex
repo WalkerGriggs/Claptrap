@@ -89,6 +89,12 @@ defmodule Claptrap.API.Operations.Sources do
             "application/json",
             SourceResponse
           ),
+        400 =>
+          Operation.response(
+            "Invalid ID format",
+            "application/json",
+            Error
+          ),
         404 =>
           Operation.response(
             "Source not found",
@@ -119,6 +125,12 @@ defmodule Claptrap.API.Operations.Sources do
             "application/json",
             SourceResponse
           ),
+        400 =>
+          Operation.response(
+            "Invalid ID format",
+            "application/json",
+            Error
+          ),
         404 =>
           Operation.response(
             "Source not found",
@@ -142,7 +154,19 @@ defmodule Claptrap.API.Operations.Sources do
       operationId: "deleteSource",
       parameters: [id_parameter()],
       responses: %{
-        204 => %OpenApiSpex.Response{description: "Source deleted"}
+        204 => %OpenApiSpex.Response{description: "Source deleted"},
+        400 =>
+          Operation.response(
+            "Invalid ID format",
+            "application/json",
+            Error
+          ),
+        404 =>
+          Operation.response(
+            "Source not found",
+            "application/json",
+            Error
+          )
       }
     }
   end
