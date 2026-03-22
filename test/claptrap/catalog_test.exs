@@ -287,32 +287,6 @@ defmodule Claptrap.CatalogTest do
 
       assert length(Catalog.list_entries(limit: 2)) == 2
     end
-
-    test "supports order with field and direction tuple" do
-      {:ok, source} = Catalog.create_source(@source_attrs)
-
-      {:ok, _} =
-        Catalog.create_entry(%{source_id: source.id, external_id: "a", title: "A", status: "unread"})
-
-      {:ok, _} =
-        Catalog.create_entry(%{source_id: source.id, external_id: "b", title: "B", status: "unread"})
-
-      entries = Catalog.list_entries(order: {:desc, :title})
-      assert hd(entries).title == "B"
-    end
-
-    test "supports order with atom shorthand" do
-      {:ok, source} = Catalog.create_source(@source_attrs)
-
-      {:ok, _} =
-        Catalog.create_entry(%{source_id: source.id, external_id: "b", title: "B", status: "unread"})
-
-      {:ok, _} =
-        Catalog.create_entry(%{source_id: source.id, external_id: "a", title: "A", status: "unread"})
-
-      entries = Catalog.list_entries(order: :title)
-      assert hd(entries).title == "A"
-    end
   end
 
   describe "get_entry!/1" do

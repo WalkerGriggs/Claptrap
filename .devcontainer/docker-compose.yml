@@ -7,6 +7,8 @@ services:
       - ..:/workspace:cached
       - mix-deps:/workspace/deps
       - mix-build:/workspace/_build
+    ports:
+      - "4000:4000"
     command: sh -c "mix setup && mix run --no-halt"
     depends_on:
       db:

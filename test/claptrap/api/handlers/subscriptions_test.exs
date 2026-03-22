@@ -30,7 +30,7 @@ defmodule Claptrap.API.Handlers.SubscriptionsTest do
     test "returns empty list" do
       conn = call(:get, "/api/v1/subscriptions")
       assert conn.status == 200
-      assert Jason.decode!(conn.resp_body) == []
+      assert %{"items" => []} = Jason.decode!(conn.resp_body)
     end
 
     test "returns subscriptions" do
@@ -39,19 +39,26 @@ defmodule Claptrap.API.Handlers.SubscriptionsTest do
 
       conn = call(:get, "/api/v1/subscriptions")
       assert conn.status == 200
-      assert [%{"tags" => ["elixir"]}] = Jason.decode!(conn.resp_body)
+      assert %{"items" => [%{"tags" => ["elixir"]}]} = Jason.decode!(conn.resp_body)
     end
 
-    test "filters by sink_id" do
-      {:ok, s1} = create_sink()
-      {:ok, s2} = Catalog.create_sink(%{@sink_attrs | name: "Other"})
-      {:ok, _} = Catalog.create_subscription(%{sink_id: s1.id, tags: ["a"]})
-      {:ok, _} = Catalog.create_subscription(%{sink_id: s2.id, tags: ["b"]})
+    test "paginates with page_size and page_token" do
+      {:ok, sink} = create_sink()
 
-      conn = call(:get, "/api/v1/subscriptions?sink_id=#{s1.id}")
-      subs = Jason.decode!(conn.resp_body)
-      assert length(subs) == 1
-      assert hd(subs)["sink_id"] == s1.id
+      for tag <- ~w(a b c) do
+        {:ok, _} = Catalog.create_subscription(%{sink_id: sink.id, tags: [tag]})
+        Process.sleep(10)
+      end
+
+      conn = call(:get, "/api/v1/subscriptions?page_size=2")
+      body = Jason.decode!(conn.resp_body)
+      assert length(body["items"]) == 2
+      assert body["next_page_token"]
+
+      conn = call(:get, "/api/v1/subscriptions?page_size=2&page_token=#{body["next_page_token"]}")
+      body = Jason.decode!(conn.resp_body)
+      assert length(body["items"]) == 1
+      refute Map.has_key?(body, "next_page_token")
     end
   end
 

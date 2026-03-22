@@ -28,24 +28,31 @@ defmodule Claptrap.API.Handlers.SinksTest do
     test "returns empty list" do
       conn = call(:get, "/api/v1/sinks")
       assert conn.status == 200
-      assert Jason.decode!(conn.resp_body) == []
+      assert %{"items" => []} = Jason.decode!(conn.resp_body)
     end
 
     test "returns sinks" do
       {:ok, _} = Catalog.create_sink(@sink_attrs)
       conn = call(:get, "/api/v1/sinks")
       assert conn.status == 200
-      assert [%{"type" => "webhook"}] = Jason.decode!(conn.resp_body)
+      assert %{"items" => [%{"type" => "webhook"}]} = Jason.decode!(conn.resp_body)
     end
 
-    test "filters by enabled" do
-      {:ok, _} = Catalog.create_sink(@sink_attrs)
-      {:ok, _} = Catalog.create_sink(Map.put(@sink_attrs, :enabled, false))
+    test "paginates with page_size and page_token" do
+      for i <- 1..3 do
+        {:ok, _} = Catalog.create_sink(%{@sink_attrs | name: "Hook #{i}"})
+        Process.sleep(10)
+      end
 
-      conn = call(:get, "/api/v1/sinks?enabled=true")
-      sinks = Jason.decode!(conn.resp_body)
-      assert length(sinks) == 1
-      assert hd(sinks)["enabled"] == true
+      conn = call(:get, "/api/v1/sinks?page_size=2")
+      body = Jason.decode!(conn.resp_body)
+      assert length(body["items"]) == 2
+      assert body["next_page_token"]
+
+      conn = call(:get, "/api/v1/sinks?page_size=2&page_token=#{body["next_page_token"]}")
+      body = Jason.decode!(conn.resp_body)
+      assert length(body["items"]) == 1
+      refute Map.has_key?(body, "next_page_token")
     end
   end
 

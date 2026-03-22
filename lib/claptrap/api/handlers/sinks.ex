@@ -4,15 +4,16 @@ defmodule Claptrap.API.Handlers.Sinks do
   use Plug.Router
 
   alias Claptrap.Catalog
+  alias Claptrap.Pagination
   import Claptrap.API.Helpers
 
   plug(:match)
   plug(:dispatch)
 
   get "/" do
-    opts = filter_opts(conn.query_params)
-    sinks = Catalog.list_sinks(opts)
-    json(conn, 200, sinks)
+    opts = Pagination.params_to_opts(conn.query_params)
+    page = Catalog.list_sinks(opts)
+    json(conn, 200, Pagination.to_response(page))
   end
 
   post "/" do
@@ -45,8 +46,4 @@ defmodule Claptrap.API.Handlers.Sinks do
   match _ do
     send_resp(conn, 404, Jason.encode!(%{error: "not found"}))
   end
-
-  defp filter_opts(%{"enabled" => "true"}), do: [enabled: true]
-  defp filter_opts(%{"enabled" => "false"}), do: [enabled: false]
-  defp filter_opts(_), do: []
 end

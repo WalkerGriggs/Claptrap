@@ -11,7 +11,7 @@ defmodule Claptrap.Catalog do
   def list_sources(opts \\ []) do
     Source
     |> maybe_filter_enabled(opts[:enabled])
-    |> Repo.all()
+    |> list(opts, inserted_at: :asc, id: :asc)
   end
 
   def get_source!(id), do: Repo.get!(Source, id)
@@ -35,7 +35,7 @@ defmodule Claptrap.Catalog do
   def list_sinks(opts \\ []) do
     Sink
     |> maybe_filter_enabled(opts[:enabled])
-    |> Repo.all()
+    |> list(opts, inserted_at: :asc, id: :asc)
   end
 
   def get_sink!(id), do: Repo.get!(Sink, id)
@@ -59,7 +59,7 @@ defmodule Claptrap.Catalog do
   def list_subscriptions(opts \\ []) do
     Subscription
     |> maybe_filter_by(:sink_id, opts[:sink_id])
-    |> Repo.all()
+    |> list(opts, inserted_at: :asc, id: :asc)
   end
 
   def create_subscription(attrs) do
@@ -77,7 +77,7 @@ defmodule Claptrap.Catalog do
     |> Repo.all()
   end
 
-  # Entries for sink (used by producer adapters for materialization)
+  # Entries for sink (used by producer adapters)
 
   def entries_for_sink(sink_id, opts \\ []) do
     limit = opts[:limit] || 50
@@ -105,9 +105,7 @@ defmodule Claptrap.Catalog do
     Entry
     |> maybe_filter_by(:status, opts[:status])
     |> maybe_filter_by(:source_id, opts[:source_id])
-    |> maybe_limit(opts[:limit])
-    |> maybe_order(opts[:order])
-    |> Repo.all()
+    |> list(opts, inserted_at: :desc, id: :desc)
   end
 
   def get_entry!(id), do: Repo.get!(Entry, id)
@@ -115,7 +113,10 @@ defmodule Claptrap.Catalog do
   def create_entry(attrs) do
     %Entry{}
     |> Entry.changeset(attrs)
-    |> Repo.insert(on_conflict: :nothing, conflict_target: [:external_id, :source_id])
+    |> Repo.insert(
+      on_conflict: :nothing,
+      conflict_target: [:external_id, :source_id]
+    )
   end
 
   def update_entry(%Entry{} = entry, attrs) do
@@ -125,6 +126,29 @@ defmodule Claptrap.Catalog do
   end
 
   # Private helpers
+
+  @pagination_keys [:limit, :after, :before]
+
+  defp list(query, opts, cursor_fields) do
+    case Keyword.pop(opts, :paginate) do
+      {true, rest} ->
+        pagination_opts =
+          rest
+          |> Keyword.take(@pagination_keys)
+          |> Keyword.put(:cursor_fields, cursor_fields)
+
+        order = Enum.map(cursor_fields, fn {f, d} -> {d, f} end)
+
+        query
+        |> order_by(^order)
+        |> Repo.paginate(pagination_opts)
+
+      {_, rest} ->
+        query
+        |> maybe_limit(rest[:limit])
+        |> Repo.all()
+    end
+  end
 
   defp maybe_filter_enabled(query, nil), do: query
   defp maybe_filter_enabled(query, value), do: where(query, [q], q.enabled == ^value)
@@ -136,8 +160,4 @@ defmodule Claptrap.Catalog do
 
   defp maybe_limit(query, nil), do: query
   defp maybe_limit(query, value), do: limit(query, ^value)
-
-  defp maybe_order(query, nil), do: query
-  defp maybe_order(query, {direction, field}), do: order_by(query, [q], [{^direction, ^field}])
-  defp maybe_order(query, field) when is_atom(field), do: order_by(query, [q], asc: ^field)
 end

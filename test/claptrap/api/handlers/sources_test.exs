@@ -28,34 +28,33 @@ defmodule Claptrap.API.Handlers.SourcesTest do
     test "returns empty list" do
       conn = call(:get, "/api/v1/sources")
       assert conn.status == 200
-      assert Jason.decode!(conn.resp_body) == []
+      assert %{"items" => []} = Jason.decode!(conn.resp_body)
     end
 
     test "returns sources" do
       {:ok, _} = Catalog.create_source(@source_attrs)
       conn = call(:get, "/api/v1/sources")
       assert conn.status == 200
-      assert [%{"type" => "rss"}] = Jason.decode!(conn.resp_body)
+      assert %{"items" => [%{"type" => "rss"}]} = Jason.decode!(conn.resp_body)
     end
 
-    test "filters by enabled=true" do
-      {:ok, _} = Catalog.create_source(@source_attrs)
-      {:ok, _} = Catalog.create_source(Map.put(@source_attrs, :enabled, false))
+    test "paginates with page_size and page_token" do
+      for i <- 1..3 do
+        {:ok, _} = Catalog.create_source(%{@source_attrs | name: "Feed #{i}"})
+        Process.sleep(10)
+      end
 
-      conn = call(:get, "/api/v1/sources?enabled=true")
-      sources = Jason.decode!(conn.resp_body)
-      assert length(sources) == 1
-      assert hd(sources)["enabled"] == true
-    end
+      # First page
+      conn = call(:get, "/api/v1/sources?page_size=2")
+      body = Jason.decode!(conn.resp_body)
+      assert length(body["items"]) == 2
+      assert body["next_page_token"]
 
-    test "filters by enabled=false" do
-      {:ok, _} = Catalog.create_source(@source_attrs)
-      {:ok, _} = Catalog.create_source(Map.put(@source_attrs, :enabled, false))
-
-      conn = call(:get, "/api/v1/sources?enabled=false")
-      sources = Jason.decode!(conn.resp_body)
-      assert length(sources) == 1
-      assert hd(sources)["enabled"] == false
+      # Second page
+      conn = call(:get, "/api/v1/sources?page_size=2&page_token=#{body["next_page_token"]}")
+      body = Jason.decode!(conn.resp_body)
+      assert length(body["items"]) == 1
+      refute Map.has_key?(body, "next_page_token")
     end
   end
 

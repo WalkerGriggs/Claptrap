@@ -4,15 +4,16 @@ defmodule Claptrap.API.Handlers.Subscriptions do
   use Plug.Router
 
   alias Claptrap.Catalog
+  alias Claptrap.Pagination
   import Claptrap.API.Helpers
 
   plug(:match)
   plug(:dispatch)
 
   get "/" do
-    opts = filter_opts(conn.query_params)
-    subscriptions = Catalog.list_subscriptions(opts)
-    json(conn, 200, subscriptions)
+    opts = Pagination.params_to_opts(conn.query_params)
+    page = Catalog.list_subscriptions(opts)
+    json(conn, 200, Pagination.to_response(page))
   end
 
   post "/" do
@@ -36,7 +37,4 @@ defmodule Claptrap.API.Handlers.Subscriptions do
   match _ do
     send_resp(conn, 404, Jason.encode!(%{error: "not found"}))
   end
-
-  defp filter_opts(%{"sink_id" => sink_id}), do: [sink_id: sink_id]
-  defp filter_opts(_), do: []
 end
