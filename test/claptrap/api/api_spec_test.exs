@@ -15,10 +15,11 @@ defmodule Claptrap.API.ApiSpecTest do
       assert %Server{url: "/api/v1"} = server
     end
 
-    test "paths is an empty map" do
+    test "includes Sources paths" do
       %OpenApi{paths: paths} = ApiSpec.spec()
 
-      assert paths == %{}
+      assert Map.has_key?(paths, "/sources")
+      assert Map.has_key?(paths, "/sources/{id}")
     end
   end
 end

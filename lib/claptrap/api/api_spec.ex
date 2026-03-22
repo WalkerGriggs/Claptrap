@@ -1,6 +1,7 @@
 defmodule Claptrap.API.ApiSpec do
   @moduledoc false
 
+  alias Claptrap.API.Operations
   alias OpenApiSpex.{Info, OpenApi, Server}
 
   @behaviour OpenApi
@@ -14,7 +15,7 @@ defmodule Claptrap.API.ApiSpec do
         description: "Content ingestion and delivery API"
       },
       servers: [%Server{url: "/api/v1"}],
-      paths: %{}
+      paths: Operations.Sources.paths()
     }
     |> OpenApiSpex.resolve_schema_modules()
   end
