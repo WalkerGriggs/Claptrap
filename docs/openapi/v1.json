@@ -1,0 +1,1626 @@
+{
+  "components": {
+    "responses": {},
+    "schemas": {
+      "CreateEntryRequest": {
+        "properties": {
+          "author": {
+            "nullable": true,
+            "type": "string"
+          },
+          "external_id": {
+            "type": "string"
+          },
+          "metadata": {
+            "nullable": true,
+            "type": "object"
+          },
+          "published_at": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "source_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "unread",
+              "in_progress",
+              "read",
+              "archived"
+            ],
+            "type": "string"
+          },
+          "summary": {
+            "nullable": true,
+            "type": "string"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_id",
+          "external_id",
+          "title",
+          "status"
+        ],
+        "title": "CreateEntryRequest",
+        "type": "object"
+      },
+      "CreateSinkRequest": {
+        "properties": {
+          "config": {
+            "type": "object"
+          },
+          "credentials": {
+            "type": "object"
+          },
+          "enabled": {
+            "default": true,
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "name",
+          "config"
+        ],
+        "title": "CreateSinkRequest",
+        "type": "object"
+      },
+      "CreateSourceRequest": {
+        "properties": {
+          "config": {
+            "type": "object"
+          },
+          "credentials": {
+            "type": "object"
+          },
+          "enabled": {
+            "default": true,
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "type": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "name",
+          "config"
+        ],
+        "title": "CreateSourceRequest",
+        "type": "object"
+      },
+      "CreateSubscriptionRequest": {
+        "properties": {
+          "sink_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "tags": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "sink_id"
+        ],
+        "title": "CreateSubscriptionRequest",
+        "type": "object"
+      },
+      "EntryResponse": {
+        "properties": {
+          "author": {
+            "nullable": true,
+            "type": "string"
+          },
+          "external_id": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "inserted_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "metadata": {
+            "nullable": true,
+            "type": "object"
+          },
+          "published_at": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "source_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "unread",
+              "in_progress",
+              "read",
+              "archived"
+            ],
+            "type": "string"
+          },
+          "summary": {
+            "nullable": true,
+            "type": "string"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "title": {
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "url": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "external_id",
+          "title",
+          "status",
+          "tags",
+          "source_id",
+          "inserted_at",
+          "updated_at"
+        ],
+        "title": "EntryResponse",
+        "type": "object"
+      },
+      "Error": {
+        "properties": {
+          "error": {
+            "description": "Error message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "title": "Error",
+        "type": "object"
+      },
+      "SinkResponse": {
+        "properties": {
+          "config": {
+            "type": "object"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "inserted_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "name",
+          "config",
+          "enabled",
+          "inserted_at",
+          "updated_at"
+        ],
+        "title": "SinkResponse",
+        "type": "object"
+      },
+      "SourceResponse": {
+        "properties": {
+          "config": {
+            "type": "object"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "inserted_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "last_consumed_at": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "type": {
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "name",
+          "config",
+          "enabled",
+          "last_consumed_at",
+          "tags",
+          "inserted_at",
+          "updated_at"
+        ],
+        "title": "SourceResponse",
+        "type": "object"
+      },
+      "SubscriptionResponse": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "inserted_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "sink_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "sink_id",
+          "tags",
+          "inserted_at",
+          "updated_at"
+        ],
+        "title": "SubscriptionResponse",
+        "type": "object"
+      },
+      "UpdateEntryRequest": {
+        "properties": {
+          "status": {
+            "enum": [
+              "unread",
+              "in_progress",
+              "read",
+              "archived"
+            ],
+            "type": "string"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "title": "UpdateEntryRequest",
+        "type": "object"
+      },
+      "UpdateSinkRequest": {
+        "properties": {
+          "config": {
+            "type": "object"
+          },
+          "credentials": {
+            "type": "object"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          }
+        },
+        "title": "UpdateSinkRequest",
+        "type": "object"
+      },
+      "UpdateSourceRequest": {
+        "properties": {
+          "config": {
+            "type": "object"
+          },
+          "credentials": {
+            "type": "object"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "type": {
+            "type": "string"
+          }
+        },
+        "title": "UpdateSourceRequest",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "errors": {
+            "additionalProperties": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "description": "Field-level validation errors",
+            "type": "object"
+          }
+        },
+        "required": [
+          "errors"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "Content ingestion and delivery API",
+    "title": "Claptrap",
+    "version": "0.1.0"
+  },
+  "openapi": "3.0.0",
+  "paths": {
+    "/entries": {
+      "get": {
+        "callbacks": {},
+        "deprecated": false,
+        "operationId": "listEntries",
+        "parameters": [
+          {
+            "description": "Number of items per page",
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 25,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Cursor token for next page",
+            "in": "query",
+            "name": "page_token",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "properties": {
+                          "author": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "external_id": {
+                            "type": "string"
+                          },
+                          "id": {
+                            "format": "uuid",
+                            "type": "string"
+                          },
+                          "inserted_at": {
+                            "format": "date-time",
+                            "type": "string"
+                          },
+                          "metadata": {
+                            "nullable": true,
+                            "type": "object"
+                          },
+                          "published_at": {
+                            "format": "date-time",
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "source_id": {
+                            "format": "uuid",
+                            "type": "string"
+                          },
+                          "status": {
+                            "enum": [
+                              "unread",
+                              "in_progress",
+                              "read",
+                              "archived"
+                            ],
+                            "type": "string"
+                          },
+                          "summary": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "tags": {
+                            "items": {
+                              "type": "string"
+                            },
+                            "type": "array"
+                          },
+                          "title": {
+                            "type": "string"
+                          },
+                          "updated_at": {
+                            "format": "date-time",
+                            "type": "string"
+                          },
+                          "url": {
+                            "nullable": true,
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "external_id",
+                          "title",
+                          "status",
+                          "tags",
+                          "source_id",
+                          "inserted_at",
+                          "updated_at"
+                        ],
+                        "title": "EntryResponse",
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "next_page_token": {
+                      "description": "Cursor for next page; absent on last page",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Paginated list of entries"
+          }
+        },
+        "summary": "List entries",
+        "tags": [
+          "Entries"
+        ]
+      },
+      "post": {
+        "callbacks": {},
+        "deprecated": false,
+        "operationId": "createEntry",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateEntryRequest"
+              }
+            }
+          },
+          "description": "Entry to create",
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntryResponse"
+                }
+              }
+            },
+            "description": "Created entry"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
+          }
+        },
+        "summary": "Create an entry",
+        "tags": [
+          "Entries"
+        ]
+      }
+    },
+    "/entries/{id}": {
+      "get": {
+        "callbacks": {},
+        "deprecated": false,
+        "operationId": "getEntry",
+        "parameters": [
+          {
+            "description": "Entry ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntryResponse"
+                }
+              }
+            },
+            "description": "Entry found"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid ID format"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Entry not found"
+          }
+        },
+        "summary": "Get an entry",
+        "tags": [
+          "Entries"
+        ]
+      },
+      "patch": {
+        "callbacks": {},
+        "deprecated": false,
+        "operationId": "updateEntry",
+        "parameters": [
+          {
+            "description": "Entry ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateEntryRequest"
+              }
+            }
+          },
+          "description": "Entry attributes to update",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntryResponse"
+                }
+              }
+            },
+            "description": "Updated entry"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid ID format"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Entry not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
+          }
+        },
+        "summary": "Update an entry",
+        "tags": [
+          "Entries"
+        ]
+      }
+    },
+    "/sinks": {
+      "get": {
+        "callbacks": {},
+        "deprecated": false,
+        "operationId": "listSinks",
+        "parameters": [
+          {
+            "description": "Number of items per page",
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 25,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Cursor token for next page",
+            "in": "query",
+            "name": "page_token",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "properties": {
+                          "config": {
+                            "type": "object"
+                          },
+                          "enabled": {
+                            "type": "boolean"
+                          },
+                          "id": {
+                            "format": "uuid",
+                            "type": "string"
+                          },
+                          "inserted_at": {
+                            "format": "date-time",
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "type": {
+                            "type": "string"
+                          },
+                          "updated_at": {
+                            "format": "date-time",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "type",
+                          "name",
+                          "config",
+                          "enabled",
+                          "inserted_at",
+                          "updated_at"
+                        ],
+                        "title": "SinkResponse",
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "next_page_token": {
+                      "description": "Cursor for next page; absent on last page",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Paginated list of sinks"
+          }
+        },
+        "summary": "List sinks",
+        "tags": [
+          "Sinks"
+        ]
+      },
+      "post": {
+        "callbacks": {},
+        "deprecated": false,
+        "operationId": "createSink",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSinkRequest"
+              }
+            }
+          },
+          "description": "Sink to create",
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SinkResponse"
+                }
+              }
+            },
+            "description": "Created sink"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
+          }
+        },
+        "summary": "Create a sink",
+        "tags": [
+          "Sinks"
+        ]
+      }
+    },
+    "/sinks/{id}": {
+      "delete": {
+        "callbacks": {},
+        "deprecated": false,
+        "operationId": "deleteSink",
+        "parameters": [
+          {
+            "description": "Sink ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Sink deleted"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid ID format"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Sink not found"
+          }
+        },
+        "summary": "Delete a sink",
+        "tags": [
+          "Sinks"
+        ]
+      },
+      "get": {
+        "callbacks": {},
+        "deprecated": false,
+        "operationId": "getSink",
+        "parameters": [
+          {
+            "description": "Sink ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SinkResponse"
+                }
+              }
+            },
+            "description": "Sink found"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid ID format"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Sink not found"
+          }
+        },
+        "summary": "Get a sink",
+        "tags": [
+          "Sinks"
+        ]
+      },
+      "patch": {
+        "callbacks": {},
+        "deprecated": false,
+        "operationId": "updateSink",
+        "parameters": [
+          {
+            "description": "Sink ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSinkRequest"
+              }
+            }
+          },
+          "description": "Sink attributes to update",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SinkResponse"
+                }
+              }
+            },
+            "description": "Updated sink"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid ID format"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Sink not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
+          }
+        },
+        "summary": "Update a sink",
+        "tags": [
+          "Sinks"
+        ]
+      }
+    },
+    "/sources": {
+      "get": {
+        "callbacks": {},
+        "deprecated": false,
+        "operationId": "listSources",
+        "parameters": [
+          {
+            "description": "Number of items per page",
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 25,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Cursor token for next page",
+            "in": "query",
+            "name": "page_token",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "properties": {
+                          "config": {
+                            "type": "object"
+                          },
+                          "enabled": {
+                            "type": "boolean"
+                          },
+                          "id": {
+                            "format": "uuid",
+                            "type": "string"
+                          },
+                          "inserted_at": {
+                            "format": "date-time",
+                            "type": "string"
+                          },
+                          "last_consumed_at": {
+                            "format": "date-time",
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "tags": {
+                            "items": {
+                              "type": "string"
+                            },
+                            "type": "array"
+                          },
+                          "type": {
+                            "type": "string"
+                          },
+                          "updated_at": {
+                            "format": "date-time",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "type",
+                          "name",
+                          "config",
+                          "enabled",
+                          "last_consumed_at",
+                          "tags",
+                          "inserted_at",
+                          "updated_at"
+                        ],
+                        "title": "SourceResponse",
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "next_page_token": {
+                      "description": "Cursor for next page; absent on last page",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Paginated list of sources"
+          }
+        },
+        "summary": "List sources",
+        "tags": [
+          "Sources"
+        ]
+      },
+      "post": {
+        "callbacks": {},
+        "deprecated": false,
+        "operationId": "createSource",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSourceRequest"
+              }
+            }
+          },
+          "description": "Source to create",
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourceResponse"
+                }
+              }
+            },
+            "description": "Created source"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
+          }
+        },
+        "summary": "Create a source",
+        "tags": [
+          "Sources"
+        ]
+      }
+    },
+    "/sources/{id}": {
+      "delete": {
+        "callbacks": {},
+        "deprecated": false,
+        "operationId": "deleteSource",
+        "parameters": [
+          {
+            "description": "Source ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Source deleted"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid ID format"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Source not found"
+          }
+        },
+        "summary": "Delete a source",
+        "tags": [
+          "Sources"
+        ]
+      },
+      "get": {
+        "callbacks": {},
+        "deprecated": false,
+        "operationId": "getSource",
+        "parameters": [
+          {
+            "description": "Source ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourceResponse"
+                }
+              }
+            },
+            "description": "Source found"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid ID format"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Source not found"
+          }
+        },
+        "summary": "Get a source",
+        "tags": [
+          "Sources"
+        ]
+      },
+      "patch": {
+        "callbacks": {},
+        "deprecated": false,
+        "operationId": "updateSource",
+        "parameters": [
+          {
+            "description": "Source ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSourceRequest"
+              }
+            }
+          },
+          "description": "Source attributes to update",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourceResponse"
+                }
+              }
+            },
+            "description": "Updated source"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid ID format"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Source not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
+          }
+        },
+        "summary": "Update a source",
+        "tags": [
+          "Sources"
+        ]
+      }
+    },
+    "/subscriptions": {
+      "get": {
+        "callbacks": {},
+        "deprecated": false,
+        "operationId": "listSubscriptions",
+        "parameters": [
+          {
+            "description": "Number of items per page",
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 25,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Cursor token for next page",
+            "in": "query",
+            "name": "page_token",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "properties": {
+                          "id": {
+                            "format": "uuid",
+                            "type": "string"
+                          },
+                          "inserted_at": {
+                            "format": "date-time",
+                            "type": "string"
+                          },
+                          "sink_id": {
+                            "format": "uuid",
+                            "type": "string"
+                          },
+                          "tags": {
+                            "items": {
+                              "type": "string"
+                            },
+                            "type": "array"
+                          },
+                          "updated_at": {
+                            "format": "date-time",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "sink_id",
+                          "tags",
+                          "inserted_at",
+                          "updated_at"
+                        ],
+                        "title": "SubscriptionResponse",
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "next_page_token": {
+                      "description": "Cursor for next page; absent on last page",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Paginated list of subscriptions"
+          }
+        },
+        "summary": "List subscriptions",
+        "tags": [
+          "Subscriptions"
+        ]
+      },
+      "post": {
+        "callbacks": {},
+        "deprecated": false,
+        "operationId": "createSubscription",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSubscriptionRequest"
+              }
+            }
+          },
+          "description": "Subscription to create",
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionResponse"
+                }
+              }
+            },
+            "description": "Created subscription"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
+          }
+        },
+        "summary": "Create a subscription",
+        "tags": [
+          "Subscriptions"
+        ]
+      }
+    },
+    "/subscriptions/{id}": {
+      "delete": {
+        "callbacks": {},
+        "deprecated": false,
+        "operationId": "deleteSubscription",
+        "parameters": [
+          {
+            "description": "Subscription ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Subscription deleted"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Subscription not found"
+          }
+        },
+        "summary": "Delete a subscription",
+        "tags": [
+          "Subscriptions"
+        ]
+      },
+      "get": {
+        "callbacks": {},
+        "deprecated": false,
+        "operationId": "getSubscription",
+        "parameters": [
+          {
+            "description": "Subscription ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionResponse"
+                }
+              }
+            },
+            "description": "Subscription found"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Subscription not found"
+          }
+        },
+        "summary": "Get a subscription",
+        "tags": [
+          "Subscriptions"
+        ]
+      }
+    }
+  },
+  "security": [],
+  "servers": [
+    {
+      "url": "/api/v1",
+      "variables": {}
+    }
+  ],
+  "tags": []
+}
