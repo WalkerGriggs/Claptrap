@@ -45,6 +45,7 @@ defmodule Claptrap.MixProject do
       {:jason, "~> 1.4"},
       {:req, "~> 0.5"},
       {:sweet_xml, "~> 0.7"},
+      {:open_api_spex, "~> 3.21"},
 
       # Database
       {:ecto_sql, "~> 3.12"},

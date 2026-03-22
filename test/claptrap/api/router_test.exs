@@ -28,6 +28,19 @@ defmodule Claptrap.API.RouterTest do
     end
   end
 
+  describe "GET /api/v1/openapi" do
+    test "returns 200 with valid OpenAPI spec" do
+      conn = call(:get, "/api/v1/openapi")
+      assert conn.status == 200
+      assert {"content-type", "application/json; charset=utf-8"} in conn.resp_headers
+
+      body = Jason.decode!(conn.resp_body)
+      assert body["info"]["title"] == "Claptrap"
+      assert body["info"]["version"] == "0.1.0"
+      assert String.starts_with?(body["openapi"], "3.")
+    end
+  end
+
   describe "unknown routes" do
     test "returns 404 for unmatched paths" do
       conn = call(:get, "/nonexistent")
