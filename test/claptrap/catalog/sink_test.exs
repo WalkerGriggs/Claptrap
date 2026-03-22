@@ -1,10 +1,10 @@
-defmodule Claptrap.Schemas.SinkTest do
+defmodule Claptrap.Catalog.SinkTest do
   use Claptrap.DataCase, async: true
 
   @moduletag :integration
   @moduletag capture_log: true
 
-  alias Claptrap.Schemas.Sink
+  alias Claptrap.Catalog.Sink
 
   @valid_attrs %{
     type: "webhook",

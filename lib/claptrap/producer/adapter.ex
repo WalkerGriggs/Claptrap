@@ -3,12 +3,12 @@ defmodule Claptrap.Producer.Adapter do
 
   @callback mode() :: :push | :pull
 
-  @callback push(sink :: %Claptrap.Schemas.Sink{}, entries :: [%Claptrap.Schemas.Entry{}]) ::
+  @callback push(sink :: %Claptrap.Catalog.Sink{}, entries :: [%Claptrap.Catalog.Entry{}]) ::
               :ok | {:error, term()}
 
   @callback materialize(
-              sink :: %Claptrap.Schemas.Sink{},
-              entries :: [%Claptrap.Schemas.Entry{}]
+              sink :: %Claptrap.Catalog.Sink{},
+              entries :: [%Claptrap.Catalog.Entry{}]
             ) ::
               :ok | {:error, term()}
 

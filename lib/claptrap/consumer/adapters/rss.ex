@@ -5,7 +5,7 @@ defmodule Claptrap.Consumer.Adapters.RSS do
 
   import SweetXml
 
-  alias Claptrap.Schemas.Source
+  alias Claptrap.Catalog.Source
   alias Req.Response
   alias Req.TransportError
 

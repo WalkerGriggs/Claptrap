@@ -1,4 +1,4 @@
-defmodule Claptrap.Schemas.Source do
+defmodule Claptrap.Catalog.Source do
   @moduledoc false
 
   use Ecto.Schema
@@ -30,7 +30,7 @@ defmodule Claptrap.Schemas.Source do
     field :last_consumed_at, :utc_datetime_usec
     field :tags, {:array, :string}, default: []
 
-    has_many :entries, Claptrap.Schemas.Entry
+    has_many :entries, Claptrap.Catalog.Entry
 
     timestamps(type: :utc_datetime_usec)
   end

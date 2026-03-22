@@ -1,4 +1,4 @@
-defmodule Claptrap.Schemas.Entry do
+defmodule Claptrap.Catalog.Entry do
   @moduledoc false
 
   use Ecto.Schema
@@ -35,7 +35,7 @@ defmodule Claptrap.Schemas.Entry do
     field :metadata, :map
     field :tags, {:array, :string}, default: []
 
-    belongs_to :source, Claptrap.Schemas.Source
+    belongs_to :source, Claptrap.Catalog.Source
 
     timestamps(type: :utc_datetime_usec)
   end

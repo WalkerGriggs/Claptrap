@@ -4,7 +4,7 @@ defmodule Claptrap.Producer.Adapters.RssFeed do
   @behaviour Claptrap.Producer.Adapter
 
   alias Claptrap.Catalog
-  alias Claptrap.Schemas.{Entry, Sink}
+  alias Claptrap.Catalog.{Entry, Sink}
 
   @ets_table :claptrap_rss_feeds
   @default_max_entries 50

@@ -3,8 +3,8 @@ defmodule Claptrap.Consumer.Adapters.RSSTest do
 
   import Plug.Conn
 
+  alias Claptrap.Catalog.Source
   alias Claptrap.Consumer.Adapters.RSS
-  alias Claptrap.Schemas.Source
 
   setup do
     Req.Test.set_req_test_to_shared()

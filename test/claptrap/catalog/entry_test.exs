@@ -1,10 +1,10 @@
-defmodule Claptrap.Schemas.EntryTest do
+defmodule Claptrap.Catalog.EntryTest do
   use Claptrap.DataCase, async: true
 
   @moduletag :integration
   @moduletag capture_log: true
 
-  alias Claptrap.Schemas.Entry
+  alias Claptrap.Catalog.Entry
 
   @valid_attrs %{
     source_id: "00000000-0000-0000-0000-000000000001",
