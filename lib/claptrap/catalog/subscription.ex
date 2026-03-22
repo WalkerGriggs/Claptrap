@@ -4,8 +4,6 @@ defmodule Claptrap.Catalog.Subscription do
   use Ecto.Schema
   import Ecto.Changeset
 
-  @derive {Jason.Encoder, only: [:id, :sink_id, :tags, :inserted_at, :updated_at]}
-
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
 
