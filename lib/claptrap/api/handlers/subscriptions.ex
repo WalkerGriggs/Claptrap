@@ -3,6 +3,7 @@ defmodule Claptrap.API.Handlers.Subscriptions do
 
   use Plug.Router
 
+  alias Claptrap.API.Serializers
   alias Claptrap.Catalog
   alias Claptrap.Pagination
   import Claptrap.API.Helpers
@@ -13,19 +14,20 @@ defmodule Claptrap.API.Handlers.Subscriptions do
   get "/" do
     opts = Pagination.params_to_opts(conn.query_params)
     page = Catalog.list_subscriptions(opts)
-    json(conn, 200, Pagination.to_response(page))
+    response = Pagination.to_response(page)
+    json(conn, 200, %{response | items: Enum.map(response.items, &Serializers.serialize/1)})
   end
 
   post "/" do
     case Catalog.create_subscription(conn.body_params) do
-      {:ok, subscription} -> json(conn, 201, subscription)
+      {:ok, subscription} -> json(conn, 201, Serializers.serialize(subscription))
       {:error, changeset} -> json(conn, 422, %{errors: changeset_errors(changeset)})
     end
   end
 
   get "/:id" do
     subscription = Catalog.get_subscription!(id)
-    json(conn, 200, subscription)
+    json(conn, 200, Serializers.serialize(subscription))
   end
 
   delete "/:id" do
