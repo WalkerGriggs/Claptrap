@@ -111,6 +111,65 @@ defmodule Claptrap.RSS.PlugTest do
     end
   end
 
+  describe "conn halting" do
+    test "halts the conn after a successful response" do
+      feed = minimal_feed()
+      opts = Plug.init(feed_fn: fn _conn -> feed end)
+      conn = conn(:get, "/feed") |> Plug.call(opts)
+
+      assert conn.halted
+    end
+
+    test "halts the conn on 404" do
+      opts = Plug.init(feed_fn: fn _conn -> {:error, :not_found} end)
+      conn = conn(:get, "/feed") |> Plug.call(opts)
+
+      assert conn.halted
+    end
+
+    test "halts the conn on 500 from feed_fn" do
+      opts = Plug.init(feed_fn: fn _conn -> {:error, :boom} end)
+      conn = conn(:get, "/feed") |> Plug.call(opts)
+
+      assert conn.halted
+    end
+
+    test "halts the conn on 500 from generate failure" do
+      invalid_feed = %Feed{title: "", link: "https://example.com", description: "desc"}
+      opts = Plug.init(feed_fn: fn _conn -> invalid_feed end)
+      conn = conn(:get, "/feed") |> Plug.call(opts)
+
+      assert conn.halted
+    end
+  end
+
+  describe "content-type charset" do
+    test "does not duplicate charset in default content type" do
+      feed = minimal_feed()
+      opts = Plug.init(feed_fn: fn _conn -> feed end)
+      conn = conn(:get, "/feed") |> Plug.call(opts)
+
+      [content_type] = get_resp_header(conn, "content-type")
+      # Should contain charset exactly once
+      assert length(String.split(content_type, "charset=utf-8") -- [""]) <= 1
+    end
+
+    test "preserves charset from custom content type" do
+      feed = minimal_feed()
+
+      opts =
+        Plug.init(
+          feed_fn: fn _conn -> feed end,
+          content_type: "application/atom+xml; charset=utf-8"
+        )
+
+      conn = conn(:get, "/feed") |> Plug.call(opts)
+
+      [content_type] = get_resp_header(conn, "content-type")
+      assert content_type == "application/atom+xml; charset=utf-8"
+    end
+  end
+
   describe "conn passthrough" do
     test "feed_fn receives the actual conn with path info" do
       opts =

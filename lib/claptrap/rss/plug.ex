@@ -21,19 +21,20 @@ defmodule Claptrap.RSS.Plug do
         case Claptrap.RSS.generate(feed) do
           {:ok, xml} ->
             conn
-            |> put_resp_content_type(content_type)
+            |> put_resp_content_type(content_type, nil)
             |> maybe_put_cache_control(cache_control)
             |> send_resp(200, xml)
+            |> halt()
 
           {:error, _reason} ->
-            send_resp(conn, 500, "Internal Server Error")
+            conn |> send_resp(500, "Internal Server Error") |> halt()
         end
 
       {:error, :not_found} ->
-        send_resp(conn, 404, "Not Found")
+        conn |> send_resp(404, "Not Found") |> halt()
 
       {:error, _reason} ->
-        send_resp(conn, 500, "Internal Server Error")
+        conn |> send_resp(500, "Internal Server Error") |> halt()
     end
   end
 
