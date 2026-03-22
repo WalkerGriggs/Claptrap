@@ -3,6 +3,7 @@ defmodule Claptrap.API.Router do
 
   use Plug.Router
 
+  alias Claptrap.API.ApiSpec
   alias Claptrap.Repo
   alias Ecto.Adapters.SQL
 
@@ -21,6 +22,11 @@ defmodule Claptrap.API.Router do
       {:error, _} ->
         send_resp(conn, 503, Jason.encode!(%{status: "unavailable"}))
     end
+  end
+
+  get "/api/v1/openapi" do
+    spec = ApiSpec.spec() |> OpenApiSpex.OpenApi.to_map()
+    send_resp(conn, 200, Jason.encode!(spec))
   end
 
   forward("/api/v1/sources", to: Claptrap.API.Handlers.Sources)
