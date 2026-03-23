@@ -1,65 +1,49 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "name": "Claptrap",
-  "theme": "mint",
+  "theme": "palm",
   "colors": {
-    "primary": "#6D28D9",
-    "light": "#8B5CF6",
-    "dark": "#5B21B6"
-  },
-
-  "api": {
-    "openapi": "openapi/v1.json"
+    "primary": "#4B32EC"
   },
   "navigation": {
     "tabs": [
       {
         "tab": "Documentation",
-        "href": "/"
+        "groups": [
+          {
+            "group": "Getting started",
+            "icon": "flame",
+            "pages": ["index", "glossary"]
+          },
+          {
+            "group": "Architecture",
+            "icon": "bridge-suspension",
+            "pages": [
+              "architecture/system-overview",
+              "architecture/supervision-tree",
+              "architecture/data-flow"
+            ]
+          },
+          {
+            "group": "Resources",
+            "icon": "Book",
+            "pages": [
+              "catalog/entries",
+              "catalog/sources",
+              "catalog/sinks",
+              "catalog/subscriptions"
+            ]
+          }
+        ]
       },
       {
         "tab": "API reference",
-        "href": "/api-reference"
-      }
-    ],
-    "groups": [
-      {
-        "group": "Getting started",
-        "pages": [
-          "introduction",
-          "glossary"
-        ]
-      },
-      {
-        "group": "Architecture",
-        "pages": [
-          "architecture/system-overview",
-          "architecture/supervision-tree",
-          "architecture/catalog",
-          "architecture/consumer",
-          "architecture/producer",
-          "architecture/api-and-mcp",
-          "architecture/pubsub-and-data-flow",
-          "architecture/database-and-schema",
-          "architecture/config-and-secrets",
-          "architecture/observability",
-          "architecture/deployment-and-scaling",
-          "architecture/project-structure"
-        ]
-      },
-      {
-        "group": "Catalog resources",
-        "pages": [
-          "catalog/entries",
-          "catalog/sources",
-          "catalog/sinks",
-          "catalog/subscriptions"
-        ]
-      },
-      {
-        "group": "API reference",
-        "pages": [
-          "api-reference/introduction",
+        "openapi": "openapi/v1.json",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": ["api/index"]
+          },
           {
             "group": "Entries",
             "pages": [
