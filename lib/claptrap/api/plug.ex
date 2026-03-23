@@ -3,11 +3,12 @@ defmodule Claptrap.API.Plug do
 
   use Plug.Builder
 
-  alias Claptrap.API.Router
+  alias Claptrap.API.{Router, ValidatePlug}
 
   plug(Plug.Logger)
   plug(Plug.Parsers, parsers: [:json], json_decoder: Jason)
   plug(:put_json_content_type)
+  plug(ValidatePlug)
   plug(:handle_errors)
 
   defp put_json_content_type(conn, _opts) do
