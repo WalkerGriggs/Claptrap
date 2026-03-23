@@ -43,21 +43,6 @@ defmodule Claptrap.Consumer.Adapters.RSSTest do
       assert %DateTime{} = entry.published_at
     end
 
-    test "returns normalized attrs for an Atom feed" do
-      Req.Test.expect(RSS, fn conn ->
-        send_resp(conn, 200, atom_feed())
-      end)
-
-      assert {:ok, [entry]} = RSS.fetch(source())
-      assert entry.external_id == "urn:uuid:1"
-      assert entry.title == "Atom entry"
-      assert entry.summary == "Atom summary"
-      assert entry.url == "https://example.com/atom/1"
-      assert entry.author == "Grace Hopper"
-      assert entry.tags == ["atom"]
-      assert %DateTime{} = entry.published_at
-    end
-
     test "normalizes RFC 822 numeric offsets to UTC" do
       Req.Test.expect(RSS, fn conn ->
         send_resp(conn, 200, offset_rss_feed())
@@ -90,7 +75,7 @@ defmodule Claptrap.Consumer.Adapters.RSSTest do
         send_resp(conn, 200, "<rss><channel><item></rss>")
       end)
 
-      assert_raise ArgumentError, ~r/unable to parse RSS\/Atom feed/, fn ->
+      assert_raise ArgumentError, ~r/unable to parse RSS feed/, fn ->
         RSS.fetch(source())
       end
     end
@@ -117,7 +102,7 @@ defmodule Claptrap.Consumer.Adapters.RSSTest do
   defp rss_feed do
     """
     <?xml version="1.0" encoding="UTF-8"?>
-    <rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <rss version="2.0">
       <channel>
         <title>Example Feed</title>
         <item>
@@ -125,33 +110,13 @@ defmodule Claptrap.Consumer.Adapters.RSSTest do
           <title>First post</title>
           <description>A summary</description>
           <link>https://example.com/posts/1</link>
-          <dc:creator>Ada Lovelace</dc:creator>
+          <author>Ada Lovelace</author>
           <pubDate>Tue, 18 Mar 2026 00:00:00 GMT</pubDate>
           <category>elixir</category>
           <category>otp</category>
         </item>
       </channel>
     </rss>
-    """
-  end
-
-  defp atom_feed do
-    """
-    <?xml version="1.0" encoding="utf-8"?>
-    <feed xmlns="http://www.w3.org/2005/Atom">
-      <title>Example Atom</title>
-      <entry>
-        <id>urn:uuid:1</id>
-        <title>Atom entry</title>
-        <summary>Atom summary</summary>
-        <link href="https://example.com/atom/1" />
-        <author>
-          <name>Grace Hopper</name>
-        </author>
-        <published>2026-03-18T00:00:00Z</published>
-        <category term="atom" />
-      </entry>
-    </feed>
     """
   end
 
