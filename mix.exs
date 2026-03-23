@@ -77,6 +77,7 @@ defmodule Claptrap.MixProject do
         "format --check-formatted",
         "compile --warnings-as-errors",
         "credo --strict",
+        "openapi.check",
         "dialyzer",
         "test"
       ]
