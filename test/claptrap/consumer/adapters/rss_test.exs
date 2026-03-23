@@ -93,6 +93,43 @@ defmodule Claptrap.Consumer.Adapters.RSSTest do
       assert entry.published_at == nil
       assert entry.tags == []
     end
+
+    test "derives external_id from title hash when guid and link are absent" do
+      Req.Test.expect(RSS, fn conn ->
+        send_resp(conn, 200, no_guid_no_link_feed())
+      end)
+
+      assert {:ok, [entry]} = RSS.fetch(source())
+      assert is_binary(entry.external_id)
+      assert byte_size(entry.external_id) == 64
+      assert entry.title == "Hashable post"
+    end
+
+    test "raises when item has no identifiable fields" do
+      Req.Test.expect(RSS, fn conn ->
+        send_resp(conn, 200, empty_item_feed())
+      end)
+
+      assert_raise ArgumentError,
+                   ~r/missing a stable identifier/,
+                   fn -> RSS.fetch(source()) end
+    end
+
+    test "raises on non-retriable 4xx responses" do
+      Req.Test.expect(RSS, fn conn ->
+        send_resp(conn, 404, "not found")
+      end)
+
+      assert_raise ArgumentError,
+                   ~r/non-retriable/,
+                   fn -> RSS.fetch(source()) end
+    end
+
+    test "returns transient error for transport failures" do
+      Req.Test.expect(RSS, &Req.Test.transport_error(&1, :econnrefused))
+
+      assert {:error, :econnrefused} = RSS.fetch(source())
+    end
   end
 
   defp source(config \\ %{"url" => "https://example.com/feed.xml"}) do
@@ -163,6 +200,33 @@ defmodule Claptrap.Consumer.Adapters.RSSTest do
         <item>
           <link>https://example.com/minimal</link>
         </item>
+      </channel>
+    </rss>
+    """
+  end
+
+  defp no_guid_no_link_feed do
+    """
+    <?xml version="1.0" encoding="UTF-8"?>
+    <rss version="2.0">
+      <channel>
+        <title>Hash ID Feed</title>
+        <item>
+          <title>Hashable post</title>
+          <description>Content for hashing</description>
+        </item>
+      </channel>
+    </rss>
+    """
+  end
+
+  defp empty_item_feed do
+    """
+    <?xml version="1.0" encoding="UTF-8"?>
+    <rss version="2.0">
+      <channel>
+        <title>Empty Item Feed</title>
+        <item></item>
       </channel>
     </rss>
     """
