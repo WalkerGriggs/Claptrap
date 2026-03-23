@@ -50,6 +50,7 @@ jobs:
       - name: Check for large files (>500 KB)
         run: |
           git ls-files | while read -r f; do
+            [ -f "$f" ] || continue
             kb=$(( $(wc -c < "$f") / 1024 ))
             if [ "$kb" -gt 500 ]; then
               echo "::error file=$f::${kb} KB exceeds 500 KB limit"
