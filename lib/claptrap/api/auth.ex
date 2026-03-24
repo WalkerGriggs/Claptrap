@@ -33,8 +33,11 @@ defmodule Claptrap.API.Auth do
 
   defp valid_token?(token) do
     case Application.get_env(:claptrap, :api_key) do
-      nil -> false
-      key -> Plug.Crypto.secure_compare(token, key)
+      key when is_binary(key) and byte_size(key) > 0 ->
+        Plug.Crypto.secure_compare(token, key)
+
+      _ ->
+        false
     end
   end
 
