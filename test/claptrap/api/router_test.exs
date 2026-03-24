@@ -9,6 +9,7 @@ defmodule Claptrap.API.RouterTest do
   defp call(method, path) do
     method
     |> Plug.Test.conn(path)
+    |> Plug.Conn.put_req_header("authorization", "Bearer test-api-key")
     |> APIPlug.call(APIPlug.init([]))
   end
 

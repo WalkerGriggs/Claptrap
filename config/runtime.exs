@@ -20,4 +20,10 @@ if config_env() == :prod do
   config :claptrap, Claptrap.Repo,
     url: database_url,
     pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10")
+
+  api_key =
+    System.get_env("CLAPTRAP_API_KEY") ||
+      raise "CLAPTRAP_API_KEY environment variable is not set"
+
+  config :claptrap, api_key: api_key
 end

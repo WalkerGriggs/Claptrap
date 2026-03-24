@@ -7,7 +7,9 @@ defmodule Claptrap.API.ValidatePlugTest do
   alias Claptrap.API.Plug, as: APIPlug
 
   defp call(method, path, body \\ nil) do
-    conn = Plug.Test.conn(method, path)
+    conn =
+      Plug.Test.conn(method, path)
+      |> Plug.Conn.put_req_header("authorization", "Bearer test-api-key")
 
     conn =
       if body do
@@ -130,6 +132,7 @@ defmodule Claptrap.API.ValidatePlugTest do
       conn =
         :post
         |> Plug.Test.conn("/api/v1/sources")
+        |> Plug.Conn.put_req_header("authorization", "Bearer test-api-key")
         |> Plug.Conn.put_req_header(
           "content-type",
           "text/plain"

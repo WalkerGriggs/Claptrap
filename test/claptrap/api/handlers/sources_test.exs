@@ -10,7 +10,9 @@ defmodule Claptrap.API.Handlers.SourcesTest do
   @source_attrs %{type: "rss", name: "Feed", config: %{"url" => "https://example.com/feed"}}
 
   defp call(method, path, body \\ nil) do
-    conn = Plug.Test.conn(method, path)
+    conn =
+      Plug.Test.conn(method, path)
+      |> Plug.Conn.put_req_header("authorization", "Bearer test-api-key")
 
     conn =
       if body do
