@@ -6,4 +6,6 @@ config :claptrap, Claptrap.Repo,
   port: 5432,
   pool_size: 10
 
+config :claptrap, api_key: "dev-api-key"
+
 config :logger, level: :debug
