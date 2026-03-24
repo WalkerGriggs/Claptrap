@@ -43,21 +43,6 @@ defmodule Claptrap.Consumer.Adapters.RSSTest do
       assert %DateTime{} = entry.published_at
     end
 
-    test "returns normalized attrs for an Atom feed" do
-      Req.Test.expect(RSS, fn conn ->
-        send_resp(conn, 200, atom_feed())
-      end)
-
-      assert {:ok, [entry]} = RSS.fetch(source())
-      assert entry.external_id == "urn:uuid:1"
-      assert entry.title == "Atom entry"
-      assert entry.summary == "Atom summary"
-      assert entry.url == "https://example.com/atom/1"
-      assert entry.author == "Grace Hopper"
-      assert entry.tags == ["atom"]
-      assert %DateTime{} = entry.published_at
-    end
-
     test "normalizes RFC 822 numeric offsets to UTC" do
       Req.Test.expect(RSS, fn conn ->
         send_resp(conn, 200, offset_rss_feed())
@@ -90,7 +75,7 @@ defmodule Claptrap.Consumer.Adapters.RSSTest do
         send_resp(conn, 200, "<rss><channel><item></rss>")
       end)
 
-      assert_raise ArgumentError, ~r/unable to parse RSS\/Atom feed/, fn ->
+      assert_raise ArgumentError, ~r/unable to parse RSS feed/, fn ->
         RSS.fetch(source())
       end
     end
@@ -108,6 +93,59 @@ defmodule Claptrap.Consumer.Adapters.RSSTest do
       assert entry.published_at == nil
       assert entry.tags == []
     end
+
+    test "derives external_id from title hash when guid and link are absent" do
+      Req.Test.expect(RSS, fn conn ->
+        send_resp(conn, 200, no_guid_no_link_feed())
+      end)
+
+      assert {:ok, [entry]} = RSS.fetch(source())
+      assert is_binary(entry.external_id)
+      assert byte_size(entry.external_id) == 64
+      assert entry.title == "Hashable post"
+    end
+
+    test "raises when item has no identifiable fields" do
+      Req.Test.expect(RSS, fn conn ->
+        send_resp(conn, 200, empty_item_feed())
+      end)
+
+      assert_raise ArgumentError,
+                   ~r/missing a stable identifier/,
+                   fn -> RSS.fetch(source()) end
+    end
+
+    test "returns transient error for 429 responses" do
+      Req.Test.expect(RSS, fn conn ->
+        send_resp(conn, 429, "too many requests")
+      end)
+
+      assert {:error, {:http_error, 429}} = RSS.fetch(source())
+    end
+
+    test "returns transient error for 408 responses" do
+      Req.Test.expect(RSS, fn conn ->
+        send_resp(conn, 408, "request timeout")
+      end)
+
+      assert {:error, {:http_error, 408}} = RSS.fetch(source())
+    end
+
+    test "raises on non-retriable 4xx responses" do
+      Req.Test.expect(RSS, fn conn ->
+        send_resp(conn, 404, "not found")
+      end)
+
+      assert_raise ArgumentError,
+                   ~r/non-retriable/,
+                   fn -> RSS.fetch(source()) end
+    end
+
+    test "returns transient error for transport failures" do
+      Req.Test.expect(RSS, &Req.Test.transport_error(&1, :econnrefused))
+
+      assert {:error, :econnrefused} = RSS.fetch(source())
+    end
   end
 
   defp source(config \\ %{"url" => "https://example.com/feed.xml"}) do
@@ -117,7 +155,7 @@ defmodule Claptrap.Consumer.Adapters.RSSTest do
   defp rss_feed do
     """
     <?xml version="1.0" encoding="UTF-8"?>
-    <rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <rss version="2.0">
       <channel>
         <title>Example Feed</title>
         <item>
@@ -125,33 +163,13 @@ defmodule Claptrap.Consumer.Adapters.RSSTest do
           <title>First post</title>
           <description>A summary</description>
           <link>https://example.com/posts/1</link>
-          <dc:creator>Ada Lovelace</dc:creator>
+          <author>Ada Lovelace</author>
           <pubDate>Tue, 18 Mar 2026 00:00:00 GMT</pubDate>
           <category>elixir</category>
           <category>otp</category>
         </item>
       </channel>
     </rss>
-    """
-  end
-
-  defp atom_feed do
-    """
-    <?xml version="1.0" encoding="utf-8"?>
-    <feed xmlns="http://www.w3.org/2005/Atom">
-      <title>Example Atom</title>
-      <entry>
-        <id>urn:uuid:1</id>
-        <title>Atom entry</title>
-        <summary>Atom summary</summary>
-        <link href="https://example.com/atom/1" />
-        <author>
-          <name>Grace Hopper</name>
-        </author>
-        <published>2026-03-18T00:00:00Z</published>
-        <category term="atom" />
-      </entry>
-    </feed>
     """
   end
 
@@ -198,6 +216,33 @@ defmodule Claptrap.Consumer.Adapters.RSSTest do
         <item>
           <link>https://example.com/minimal</link>
         </item>
+      </channel>
+    </rss>
+    """
+  end
+
+  defp no_guid_no_link_feed do
+    """
+    <?xml version="1.0" encoding="UTF-8"?>
+    <rss version="2.0">
+      <channel>
+        <title>Hash ID Feed</title>
+        <item>
+          <title>Hashable post</title>
+          <description>Content for hashing</description>
+        </item>
+      </channel>
+    </rss>
+    """
+  end
+
+  defp empty_item_feed do
+    """
+    <?xml version="1.0" encoding="UTF-8"?>
+    <rss version="2.0">
+      <channel>
+        <title>Empty Item Feed</title>
+        <item></item>
       </channel>
     </rss>
     """
