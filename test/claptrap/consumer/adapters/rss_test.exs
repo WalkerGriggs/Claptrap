@@ -115,6 +115,22 @@ defmodule Claptrap.Consumer.Adapters.RSSTest do
                    fn -> RSS.fetch(source()) end
     end
 
+    test "returns transient error for 429 responses" do
+      Req.Test.expect(RSS, fn conn ->
+        send_resp(conn, 429, "too many requests")
+      end)
+
+      assert {:error, {:http_error, 429}} = RSS.fetch(source())
+    end
+
+    test "returns transient error for 408 responses" do
+      Req.Test.expect(RSS, fn conn ->
+        send_resp(conn, 408, "request timeout")
+      end)
+
+      assert {:error, {:http_error, 408}} = RSS.fetch(source())
+    end
+
     test "raises on non-retriable 4xx responses" do
       Req.Test.expect(RSS, fn conn ->
         send_resp(conn, 404, "not found")

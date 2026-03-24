@@ -36,6 +36,9 @@ defmodule Claptrap.Consumer.Adapters.RSS do
       {:ok, %Response{status: status}} when status >= 500 ->
         {:error, {:http_error, status}}
 
+      {:ok, %Response{status: status}} when status in [408, 429] ->
+        {:error, {:http_error, status}}
+
       {:ok, %Response{status: status, body: body}} ->
         raise ArgumentError,
               "rss fetch failed with non-retriable " <>
@@ -73,7 +76,7 @@ defmodule Claptrap.Consumer.Adapters.RSS do
 
       {:error, error} ->
         raise ArgumentError,
-              "unable to parse RSS feed: #{error.message}"
+              "unable to parse RSS feed: #{Exception.message(error)}"
     end
   end
 
