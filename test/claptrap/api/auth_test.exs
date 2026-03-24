@@ -42,16 +42,17 @@ defmodule Claptrap.API.AuthTest do
     end
 
     test "returns 401 when api_key is configured as empty string" do
-      original = Application.get_env(:claptrap, :api_key)
+      alias Claptrap.API.Auth
 
-      try do
-        Application.put_env(:claptrap, :api_key, "")
-        conn = call(:get, "/api/v1/sources", [{"authorization", "Bearer "}])
-        assert conn.status == 401
-        assert %{"error" => "unauthorized"} = Jason.decode!(conn.resp_body)
-      after
-        Application.put_env(:claptrap, :api_key, original)
-      end
+      opts = Auth.init(api_key: "")
+
+      conn =
+        Plug.Test.conn(:get, "/api/v1/sources")
+        |> Plug.Conn.put_req_header("authorization", "Bearer ")
+        |> Auth.call(opts)
+
+      assert conn.status == 401
+      assert %{"error" => "unauthorized"} = Jason.decode!(conn.resp_body)
     end
   end
 
