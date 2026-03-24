@@ -73,10 +73,11 @@ defmodule Claptrap.API.Handlers.SubscriptionsTest do
       assert body["tags"] == ["elixir"]
     end
 
-    test "returns 422 with invalid params" do
+    test "returns 422 with missing sink_id" do
       conn = call(:post, "/api/v1/subscriptions", %{})
       assert conn.status == 422
-      assert Jason.decode!(conn.resp_body)["errors"]
+      errors = Jason.decode!(conn.resp_body)["errors"]
+      assert errors["sink_id"]
     end
   end
 
