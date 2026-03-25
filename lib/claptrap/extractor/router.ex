@@ -38,12 +38,7 @@ defmodule Claptrap.Extractor.Router do
 
     Logger.debug("Extractor.Router: dispatching extraction for #{length(extractable)}/#{length(entries)} entries")
 
-    for entry <- extractable do
-      Task.Supervisor.start_child(
-        Claptrap.Extractor.TaskSupervisor,
-        fn -> Pipeline.extract_and_store(entry, state.formats, state.config) end
-      )
-    end
+    Enum.each(extractable, &dispatch_extraction(&1, state))
 
     {:noreply, state}
   end
@@ -51,5 +46,18 @@ defmodule Claptrap.Extractor.Router do
   def handle_info(msg, state) do
     Logger.warning("Extractor.Router received unexpected message: #{inspect(msg)}")
     {:noreply, state}
+  end
+
+  defp dispatch_extraction(entry, state) do
+    case Task.Supervisor.start_child(
+           Claptrap.Extractor.TaskSupervisor,
+           fn -> Pipeline.extract_and_store(entry, state.formats, state.config) end
+         ) do
+      {:ok, _pid} ->
+        :ok
+
+      {:error, reason} ->
+        Logger.error("Failed to start extraction task for entry=#{entry.id}: #{inspect(reason)}")
+    end
   end
 end
