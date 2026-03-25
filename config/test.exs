@@ -22,3 +22,7 @@ config :claptrap, :extraction,
   }
 
 config :logger, level: :warning
+
+config :claptrap, Claptrap.Storage,
+  backend: Claptrap.Storage.Backends.Local,
+  root_dir: Path.join(System.tmp_dir!(), "claptrap_test_storage")
