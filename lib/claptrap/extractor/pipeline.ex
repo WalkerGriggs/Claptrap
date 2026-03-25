@@ -34,15 +34,21 @@ defmodule Claptrap.Extractor.Pipeline do
 
     case attempt_extract(adapter, entry.url, format, opts, 1, max) do
       {:ok, result} ->
-        Catalog.create_artifact(%{
-          entry_id: entry.id,
-          format: format,
-          content: result.content,
-          content_type: result.content_type,
-          byte_size: byte_size(result.content),
-          extractor: adapter_name(adapter),
-          metadata: result.metadata
-        })
+        case Catalog.create_artifact(%{
+               entry_id: entry.id,
+               format: format,
+               content: result.content,
+               content_type: result.content_type,
+               byte_size: byte_size(result.content),
+               extractor: adapter_name(adapter),
+               metadata: result.metadata
+             }) do
+          {:ok, _artifact} ->
+            :ok
+
+          {:error, changeset} ->
+            Logger.error("Failed to persist artifact for entry=#{entry.id} format=#{format}: #{inspect(changeset)}")
+        end
 
       {:error, reason} ->
         Logger.error("Extraction failed for entry=#{entry.id} format=#{format}: #{inspect(reason)}")
