@@ -1,5 +1,23 @@
 defmodule Claptrap.Storage do
-  @moduledoc false
+  @moduledoc """
+  Top-level API for storing and retrieving artifacts.
+
+  Delegates to the configured storage backend (set via application env under
+  `{:claptrap, Claptrap.Storage}`). The backend must implement the
+  `Claptrap.Storage.Adapter` behaviour.
+
+  ## Key format
+
+  Keys must match `~r/\\A[a-zA-Z0-9][a-zA-Z0-9._-]*\\z/` — alphanumeric start,
+  then alphanumeric, dots, underscores, or hyphens. No slashes, spaces, leading
+  dots, or path traversal. Invalid keys raise `ArgumentError`.
+
+  ## Stream cleanup
+
+  `read/1` returns `{:ok, stream}` backed by `Stream.resource/3`. If the caller
+  never fully consumes the stream, the underlying file handle is closed when the
+  stream is garbage collected via the after callback.
+  """
 
   @key_pattern ~r/\A[a-zA-Z0-9][a-zA-Z0-9._-]*\z/
   @prefix_pattern ~r/\A[a-zA-Z0-9._-]*\z/
