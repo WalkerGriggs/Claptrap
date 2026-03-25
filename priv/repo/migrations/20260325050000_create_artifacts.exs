@@ -14,7 +14,6 @@ defmodule Claptrap.Repo.Migrations.CreateArtifacts do
       timestamps(type: :utc_datetime_usec)
     end
 
-    create index(:artifacts, [:entry_id])
     create unique_index(:artifacts, [:entry_id, :format])
   end
 end

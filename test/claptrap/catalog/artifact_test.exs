@@ -45,11 +45,6 @@ defmodule Claptrap.Catalog.ArtifactTest do
       end
     end
 
-    test "optional fields can be omitted" do
-      changeset = Artifact.changeset(%Artifact{}, @valid_attrs)
-      assert changeset.valid?
-    end
-
     test "optional fields are accepted" do
       attrs =
         Map.merge(@valid_attrs, %{
