@@ -128,7 +128,7 @@ defmodule Claptrap.CatalogArtifactTest do
   describe "cascade delete" do
     setup [:create_entry]
 
-    test "deleting an entry removes its artifacts", %{source: source, entry: entry} do
+    test "deleting a source cascades to remove its entries' artifacts", %{source: source, entry: entry} do
       {:ok, _} = Catalog.create_artifact(artifact_attrs(entry))
       assert length(Catalog.list_artifacts(entry_id: entry.id)) == 1
 
