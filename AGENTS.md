@@ -264,3 +264,55 @@ context:
 [^2]: https://factory.ai/product/ide
 
 [^3]: https://factory.ai/news/agent-readiness
+
+## Cursor Cloud specific instructions
+
+### Environment
+
+- **Elixir/Erlang** are managed via [mise](https://mise.jdx.dev/) reading `.tool-versions` (Elixir 1.19.5-otp-28, Erlang 28.4.1). The `mise activate bash` line is in `~/.bashrc`.
+- **PostgreSQL 16** runs locally. The `postgres` user has password `postgres`. Auth method is `md5` for both local and host connections.
+
+### Starting PostgreSQL
+
+PostgreSQL does not auto-start in the Cloud VM. Before running `mix ecto.setup`, `mix test`, or the app, ensure it is running:
+
+```bash
+sudo pg_ctlcluster 16 main start
+```
+
+### Running the application
+
+Standard commands per `README.md` and `CONTRIBUTING.md`:
+
+```bash
+mix deps.get
+mix ecto.setup         # creates DB + runs migrations (idempotent if DB exists)
+mix run --no-halt      # starts server on http://localhost:4000
+```
+
+### API authentication
+
+Dev mode uses Bearer token `dev-api-key`. Pass it via `Authorization: Bearer dev-api-key` header. The `/health` and `/ready` endpoints are unauthenticated.
+
+### Testing
+
+```bash
+MIX_ENV=test mix ecto.setup   # ensure test DB exists
+mix test                       # runs unit + property tests (excludes :integration, :e2e by default)
+```
+
+To include integration/e2e tests: `mix test --include integration --include e2e`.
+
+### Linting / quality
+
+```bash
+mix format --check-formatted
+mix credo --strict
+mix check                      # full pre-merge gate (format, compile --warnings-as-errors, credo, openapi.check, dialyzer, test)
+```
+
+### Gotchas
+
+- The `inotifywait` backend warning (`backend port not found: :inotifywait`) during tests is harmless — it comes from the `fs` dependency and does not affect test results.
+- The test database must be set up separately from dev: `MIX_ENV=test mix ecto.setup`.
+- `mix setup` also configures git hooks path to `priv/hooks` — this is safe to run but not required for Cloud agents.
