@@ -18,8 +18,7 @@ defmodule Claptrap.Extractor.Adapters.Firecrawl do
         url: "#{base_url}/v1/scrape",
         json: %{"url" => url, "formats" => [format]},
         headers: [
-          {"authorization", "Bearer #{api_key}"},
-          {"content-type", "application/json"}
+          {"authorization", "Bearer #{api_key}"}
         ],
         retry: false
       )
