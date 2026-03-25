@@ -26,4 +26,8 @@ if config_env() == :prod do
       raise "CLAPTRAP_API_KEY environment variable is not set"
 
   config :claptrap, api_key: api_key
+
+  config :claptrap, :firecrawl,
+    api_key: System.fetch_env!("FIRECRAWL_API_KEY"),
+    base_url: System.get_env("FIRECRAWL_BASE_URL", "https://api.firecrawl.dev")
 end
