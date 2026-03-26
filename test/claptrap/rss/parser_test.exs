@@ -26,6 +26,19 @@ defmodule Claptrap.RSS.ParserTest do
     ~s(<item><title>Has enclosure</title><enclosure url="https://example.com/audio.mp3" length="#{length}" type="audio/mpeg"/></item>)
   end
 
+  defp mixed_enclosure_lengths(valid_length, invalid_length) do
+    """
+    <item>
+      <title>Valid enclosure</title>
+      <enclosure url="https://example.com/ok.mp3" length="#{valid_length}" type="audio/mpeg"/>
+    </item>
+    <item>
+      <title>Invalid enclosure</title>
+      <enclosure url="https://example.com/bad.mp3" length="#{invalid_length}" type="audio/mpeg"/>
+    </item>
+    """
+  end
+
   # ---------------------------------------------------------------------------
   # Happy path
   # ---------------------------------------------------------------------------
@@ -613,6 +626,42 @@ defmodule Claptrap.RSS.ParserTest do
       assert {:error, %ParseError{reason: :malformed_integer}} = Parser.parse(xml, strict: true)
     end
 
+    test "empty ttl returns ParseError" do
+      xml = minimal_feed("<ttl>   </ttl>")
+      assert {:error, %ParseError{reason: :malformed_integer}} = Parser.parse(xml, strict: true)
+    end
+
+    test "empty skipHours hour returns ParseError" do
+      xml = minimal_feed("<skipHours><hour/></skipHours>")
+      assert {:error, %ParseError{reason: :malformed_integer}} = Parser.parse(xml, strict: true)
+    end
+
+    test "empty cloud port returns ParseError" do
+      xml =
+        minimal_feed("""
+          <cloud domain="rpc.example.com" port="" path="/RPC2"
+                 registerProcedure="myCloud.rssPleaseNotify" protocol="xml-rpc"/>
+        """)
+
+      assert {:error, %ParseError{reason: :malformed_integer}} = Parser.parse(xml, strict: true)
+    end
+
+    test "empty enclosure length returns ParseError" do
+      xml =
+        minimal_feed(enclosure_with_length(""))
+
+      assert {:error, %ParseError{reason: :malformed_integer}} = Parser.parse(xml, strict: true)
+    end
+
+    test "malformed enclosure length in later item still fails strict parse" do
+      xml = minimal_feed(mixed_enclosure_lengths("1000", "1000bytes"))
+
+      assert {:error, %ParseError{reason: :malformed_integer, message: message}} =
+               Parser.parse(xml, strict: true)
+
+      assert message =~ "item.enclosure.length"
+    end
+
     test "valid integer fields parse in strict mode" do
       xml =
         minimal_feed("""
@@ -796,6 +845,46 @@ defmodule Claptrap.RSS.ParserTest do
         xml = minimal_feed("<skipHours>#{hour_xml}</skipHours>")
         assert {:ok, feed} = Parser.parse(xml)
         assert feed.skip_hours == hours
+      end
+    end
+
+    property "ttl rejects any non-empty suffix after integer" do
+      safe_suffix =
+        StreamData.string(:ascii, min_length: 1, max_length: 8)
+        |> StreamData.map(&String.replace(&1, ~r/[<>&"']/, ""))
+        |> StreamData.filter(&(String.trim(&1) != ""))
+
+      check all(
+              n <- integer(0..65_535),
+              suffix <- safe_suffix
+            ) do
+        xml = minimal_feed("<ttl>#{n}#{suffix}</ttl>")
+
+        assert {:ok, feed} = Parser.parse(xml)
+        assert feed.ttl == nil
+
+        assert {:error, %ParseError{reason: :malformed_integer}} = Parser.parse(xml, strict: true)
+      end
+    end
+
+    property "ttl accepts pure integer surrounded by whitespace" do
+      whitespace =
+        StreamData.member_of([" ", "\t", "\n", "\r"])
+        |> StreamData.list_of(max_length: 3)
+        |> StreamData.map(&Enum.join/1)
+
+      check all(
+              n <- integer(0..65_535),
+              left <- whitespace,
+              right <- whitespace
+            ) do
+        xml = minimal_feed("<ttl>#{left}#{n}#{right}</ttl>")
+
+        assert {:ok, feed} = Parser.parse(xml)
+        assert feed.ttl == n
+
+        assert {:ok, strict_feed} = Parser.parse(xml, strict: true)
+        assert strict_feed.ttl == n
       end
     end
   end

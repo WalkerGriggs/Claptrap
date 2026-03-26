@@ -105,6 +105,18 @@ defmodule Claptrap.Consumer.Adapters.RSSTest do
       assert entry.published_at == nil
     end
 
+    test "lenient parser drops malformed integer fields and still normalizes items" do
+      Req.Test.expect(RSS, fn conn ->
+        send_resp(conn, 200, malformed_integer_fields_feed())
+      end)
+
+      assert {:ok, [entry]} = RSS.fetch(source())
+      assert entry.external_id == "guid-malformed"
+      assert entry.title == "Post survives malformed numeric fields"
+      assert entry.url == "https://example.com/posts/malformed"
+      assert entry.tags == []
+    end
+
     test "derives external_id from title hash when guid and link are absent" do
       Req.Test.expect(RSS, fn conn ->
         send_resp(conn, 200, no_guid_no_link_feed())
@@ -226,6 +238,29 @@ defmodule Claptrap.Consumer.Adapters.RSSTest do
         <title>Minimal Feed</title>
         <item>
           <link>https://example.com/minimal</link>
+        </item>
+      </channel>
+    </rss>
+    """
+  end
+
+  defp malformed_integer_fields_feed do
+    """
+    <?xml version="1.0" encoding="UTF-8"?>
+    <rss version="2.0">
+      <channel>
+        <title>Malformed Numeric Feed</title>
+        <link>https://example.com</link>
+        <description>Malformed integer fields should not break lenient parsing</description>
+        <ttl>60oops</ttl>
+        <cloud domain="rpc.example.com" port="80oops" path="/RPC2"
+               registerProcedure="myCloud.rssPleaseNotify" protocol="xml-rpc"/>
+        <skipHours><hour>12x</hour></skipHours>
+        <item>
+          <guid>guid-malformed</guid>
+          <title>Post survives malformed numeric fields</title>
+          <link>https://example.com/posts/malformed</link>
+          <enclosure url="https://example.com/audio.mp3" length="1000bytes" type="audio/mpeg"/>
         </item>
       </channel>
     </rss>
