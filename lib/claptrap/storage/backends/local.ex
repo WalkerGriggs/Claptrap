@@ -1,5 +1,63 @@
 defmodule Claptrap.Storage.Backends.Local do
-  @moduledoc false
+  @moduledoc """
+  Local filesystem storage backend for `Claptrap.Storage`.
+
+  This backend stores each key beneath a configured `root_dir` on the host
+  filesystem. It is the backend currently configured for the application in
+  this repository, which means the public `Claptrap.Storage` API ultimately
+  delegates here after performing its own validation.
+
+  ## Configuration
+
+  The backend expects a configuration map with:
+
+  * `:root_dir` - the filesystem directory that acts as the storage root
+
+  Every operation resolves the requested key relative to that root and uses
+  `Path.safe_relative/1` to reject keys that would escape it.
+
+  ## Implemented behavior
+
+  This backend provides byte-oriented file storage with lazy reads:
+
+  * `write/3` creates parent directories as needed and writes each chunk from
+    the provided enumerable in order
+  * `read/2` returns a lazy stream that reopens the file and yields binary
+    chunks of up to 65,536 bytes
+  * `delete/2` removes a single filesystem entry
+  * `exists?/2` checks whether the resolved path exists
+  * `list/2` lists and sorts entries directly under `root_dir`, then filters
+    them by string prefix
+
+  ## Important limitations of the current implementation
+
+  The backend is more permissive than the public `Claptrap.Storage` facade.
+  When called directly, it accepts nested keys like `subdir/file.txt` and
+  will create the needed directories on write.
+
+  Listing is intentionally much narrower than writing:
+
+  * `list/2` is not recursive
+  * it only inspects the immediate children of `root_dir`
+  * returned values are the names reported by `File.ls/1`, so nested files are
+    not surfaced as full storage keys
+
+  In practice, that means direct backend callers can write nested paths, but
+  `list/2` will only ever return top-level entries such as filenames or
+  directory names.
+
+  ## Error handling
+
+  The backend normalizes some filesystem failures and passes others through:
+
+  * missing files on `read/2` and `delete/2` are returned as
+    `{:error, :not_found}`
+  * other `File` errors are returned as `{:error, reason}`
+  * path escape attempts raise `ArgumentError`
+  * `write/3` uses bang functions for directory creation and file opening, so
+    setup failures raise rather than returning tagged tuples
+  * stream consumption errors during `read/2` raise `IO.StreamError`
+  """
 
   @behaviour Claptrap.Storage.Adapter
 
