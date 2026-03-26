@@ -19,4 +19,8 @@ config :claptrap, :extraction,
     "html" => Claptrap.Extractor.Adapters.Firecrawl
   }
 
+config :claptrap, Claptrap.Storage,
+  backend: Claptrap.Storage.Backends.Local,
+  root_dir: Path.join(Path.expand("..", __DIR__), "priv/storage")
+
 import_config "#{config_env()}.exs"
