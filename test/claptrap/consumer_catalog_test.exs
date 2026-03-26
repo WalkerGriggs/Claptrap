@@ -90,8 +90,7 @@ defmodule Claptrap.Integration.ConsumerCatalogTest do
     test "catalog persists the full tag array as provided by the consumer" do
       source = create_source!()
 
-      {:ok, entry} =
-        Catalog.create_entry(entry_attrs(source, %{tags: ["tech", "news", "elixir"]}))
+      {:ok, entry} = Catalog.create_entry(entry_attrs(source, %{tags: ["tech", "news", "elixir"]}))
 
       assert %{tags: ["tech", "news", "elixir"]} = Catalog.get_entry!(entry.id)
     end
@@ -106,8 +105,7 @@ defmodule Claptrap.Integration.ConsumerCatalogTest do
     test "duplicate tags in input are persisted as-is by the catalog" do
       source = create_source!()
 
-      {:ok, entry} =
-        Catalog.create_entry(entry_attrs(source, %{tags: ["elixir", "elixir", "otp"]}))
+      {:ok, entry} = Catalog.create_entry(entry_attrs(source, %{tags: ["elixir", "elixir", "otp"]}))
 
       assert %{tags: ["elixir", "elixir", "otp"]} = Catalog.get_entry!(entry.id)
     end

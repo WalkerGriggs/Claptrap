@@ -1,5 +1,10 @@
 defmodule Claptrap.API.Schemas.ValidationError do
-  @moduledoc false
+  @moduledoc """
+  OpenAPI schema for validation error responses.
+
+  The schema models a map of field names to lists of human-readable validation
+  messages.
+  """
 
   require OpenApiSpex
   alias OpenApiSpex.Schema

@@ -1,5 +1,10 @@
 defmodule Claptrap.API.Schemas.SourceResponse do
-  @moduledoc false
+  @moduledoc """
+  OpenAPI schema module for source response objects.
+
+  The schema models the JSON payload returned for source resources, including
+  identity, configuration, tags, consumption metadata, and timestamps.
+  """
 
   require OpenApiSpex
   alias OpenApiSpex.Schema
@@ -23,7 +28,12 @@ defmodule Claptrap.API.Schemas.SourceResponse do
 end
 
 defmodule Claptrap.API.Schemas.CreateSourceRequest do
-  @moduledoc false
+  @moduledoc """
+  OpenAPI schema for source creation requests.
+
+  This schema documents the request body accepted by `POST /sources` and marks
+  `type`, `name`, and `config` as required fields.
+  """
 
   require OpenApiSpex
   alias OpenApiSpex.Schema
@@ -44,7 +54,11 @@ defmodule Claptrap.API.Schemas.CreateSourceRequest do
 end
 
 defmodule Claptrap.API.Schemas.UpdateSourceRequest do
-  @moduledoc false
+  @moduledoc """
+  OpenAPI schema for source update requests.
+
+  This schema documents partial attributes accepted by `PATCH /sources/{id}`.
+  """
 
   require OpenApiSpex
   alias OpenApiSpex.Schema

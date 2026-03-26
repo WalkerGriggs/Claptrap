@@ -1,5 +1,10 @@
 defmodule Claptrap.Catalog.Supervisor do
-  @moduledoc false
+  @moduledoc """
+  Supervisor for catalog-owned processes.
+
+  This supervisor starts `Claptrap.Catalog.Server` under a `:one_for_one`
+  strategy. If the server terminates, only that child is restarted.
+  """
   use Supervisor
 
   def start_link(init_arg) do

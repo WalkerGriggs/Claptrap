@@ -126,8 +126,7 @@ defmodule Claptrap.E2E.SourcesTest do
     test "paginates with page_size and page_token", ctx do
       ids =
         for i <- 1..3 do
-          {201, created} =
-            http_post("/api/v1/sources", %{@valid_params | "name" => "Feed #{i}"})
+          {201, created} = http_post("/api/v1/sources", %{@valid_params | "name" => "Feed #{i}"})
 
           track_cleanup(ctx, "/api/v1/sources/#{created["id"]}")
           created["id"]

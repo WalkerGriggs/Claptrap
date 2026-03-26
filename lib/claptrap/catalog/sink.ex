@@ -1,5 +1,14 @@
 defmodule Claptrap.Catalog.Sink do
-  @moduledoc false
+  @moduledoc """
+  Ecto schema for configured downstream delivery targets.
+
+  A sink stores destination configuration (`type`, `config`), optional
+  credentials, and an `enabled` flag. Subscriptions are attached to sinks and
+  control which entries are routed to each destination.
+
+  The changeset requires `type`, `name`, and `config`, and validates that `type`
+  and `name` are non-empty.
+  """
 
   use Ecto.Schema
   import Ecto.Changeset

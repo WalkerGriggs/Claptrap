@@ -1,5 +1,11 @@
 defmodule Claptrap.API.Operations.Sinks do
-  @moduledoc false
+  @moduledoc """
+  OpenAPI path and operation definitions for sink endpoints.
+
+  This module declares documentation metadata for listing, creating, fetching,
+  updating, and deleting sinks, including expected parameters, request bodies,
+  and response schemas.
+  """
 
   alias OpenApiSpex.{Operation, PathItem, Schema}
 

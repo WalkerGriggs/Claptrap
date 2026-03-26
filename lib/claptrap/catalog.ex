@@ -1,5 +1,25 @@
 defmodule Claptrap.Catalog do
-  @moduledoc false
+  @moduledoc """
+  The Catalog is Claptrap's persistence boundary.
+
+  This module owns read and write operations for persisted resources: sources,
+  entries, sinks, subscriptions, and artifacts. Other subsystems interact with
+  the database through these functions instead of issuing direct queries.
+
+  List functions support two access patterns. With `paginate: true`, they call
+  `Repo.paginate/2` with cursor fields chosen per resource. Without pagination,
+  they apply an optional `:limit` and return `Repo.all/1` results.
+
+  Routing-oriented queries use PostgreSQL array overlap semantics (`&&`).
+  `subscriptions_for_tags/1` returns subscriptions whose tags overlap the input
+  set, and `entries_for_sink/2` returns recent entries that overlap a sink's
+  subscription tags.
+
+  Insert behavior is intentionally idempotent for high-volume ingest paths.
+  `create_entry/1` ignores conflicts on `{external_id, source_id}`, and
+  `create_artifact/1` upserts by `{entry_id, format}` while replacing payload
+  fields on conflict.
+  """
 
   import Ecto.Query
 

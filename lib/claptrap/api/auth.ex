@@ -1,5 +1,17 @@
 defmodule Claptrap.API.Auth do
-  @moduledoc false
+  @moduledoc """
+  Plug that enforces bearer-token authentication.
+
+  Requests to paths in the allowlist bypass authentication. By default, only
+  `/health` and `/ready` are exempt.
+
+  All other requests must include `Authorization: Bearer <token>`. The expected
+  value comes from `:api_key` plug options or `Application.get_env(:claptrap,
+  :api_key)`. Token comparison uses `Plug.Crypto.secure_compare/2` to avoid
+  leaking timing information.
+
+  Unauthorized requests receive a halted `401` JSON response.
+  """
 
   @behaviour Plug
 

@@ -80,8 +80,7 @@ defmodule Claptrap.Consumer.CoordinatorTest do
 
       send(pid, :tick)
 
-      first_worker_pid =
-        eventually(fn -> Registry.whereis(:source_worker, source.id) end)
+      first_worker_pid = eventually(fn -> Registry.whereis(:source_worker, source.id) end)
 
       send(pid, :tick)
       Process.sleep(20)

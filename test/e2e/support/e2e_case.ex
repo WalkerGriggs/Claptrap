@@ -45,15 +45,13 @@ defmodule Claptrap.E2E.Case do
   end
 
   def http_post(path, body) do
-    resp =
-      Req.request!(method: :post, url: base_url() <> path, json: body, headers: auth_headers())
+    resp = Req.request!(method: :post, url: base_url() <> path, json: body, headers: auth_headers())
 
     {resp.status, decode_body(resp)}
   end
 
   def http_patch(path, body) do
-    resp =
-      Req.request!(method: :patch, url: base_url() <> path, json: body, headers: auth_headers())
+    resp = Req.request!(method: :patch, url: base_url() <> path, json: body, headers: auth_headers())
 
     {resp.status, decode_body(resp)}
   end
