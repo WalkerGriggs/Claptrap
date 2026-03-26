@@ -15,4 +15,10 @@ config :claptrap, :firecrawl,
   api_key: "test-api-key",
   base_url: "http://localhost"
 
+config :claptrap, :extraction,
+  formats: ["markdown"],
+  adapters: %{
+    "markdown" => Claptrap.Extractor.Adapters.Firecrawl
+  }
+
 config :logger, level: :warning

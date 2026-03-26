@@ -26,6 +26,9 @@ defmodule Claptrap.Extractor.RouterTest do
   end
 
   setup do
+    Supervisor.terminate_child(Claptrap.Supervisor, Claptrap.Extractor.Supervisor)
+    Process.sleep(20)
+
     previous_extraction = Application.get_env(:claptrap, :extraction)
 
     Application.put_env(:claptrap, :extraction, %{
@@ -41,6 +44,10 @@ defmodule Claptrap.Extractor.RouterTest do
       else
         Application.delete_env(:claptrap, :extraction)
       end
+
+      ExUnit.CaptureLog.capture_log(fn ->
+        Supervisor.restart_child(Claptrap.Supervisor, Claptrap.Extractor.Supervisor)
+      end)
     end)
 
     :ok

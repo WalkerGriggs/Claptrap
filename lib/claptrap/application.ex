@@ -10,6 +10,7 @@ defmodule Claptrap.Application do
       {Phoenix.PubSub, name: Claptrap.PubSub},
       Claptrap.Consumer.Supervisor,
       Claptrap.Producer.Supervisor,
+      Claptrap.Extractor.Supervisor,
       {Bandit, plug: Claptrap.API.Plug, port: port()}
     ]
 
