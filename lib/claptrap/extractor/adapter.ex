@@ -1,10 +1,25 @@
 defmodule Claptrap.Extractor.Adapter do
   @moduledoc """
-  Behaviour for extractor adapters.
+  Behaviour contract for extractor adapters.
 
-  An extractor takes a URL and a desired output format,
-  and returns the extracted content. Adapters handle the
-  specifics of how content is fetched and transformed.
+  The extractor subsystem turns an entry URL into one or more persisted
+  artifacts (for example, markdown or html content). Adapter modules implement
+  the external fetch and transformation step for a specific extraction provider.
+
+  An adapter receives:
+
+  - `url`: the entry URL to extract content from
+  - `format`: the requested artifact format, such as `"markdown"` or `"html"`
+  - `opts`: adapter/runtime options passed through by the pipeline
+
+  It must return either:
+
+  - `{:ok, %{content: ..., content_type: ..., metadata: ...}}` when extraction
+    succeeds
+  - `{:error, reason}` when extraction fails
+
+  The pipeline handles retries and persistence. Adapters should focus on
+  provider-specific request and response handling.
 
   ## Implementing an adapter
 
