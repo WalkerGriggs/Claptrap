@@ -1,5 +1,63 @@
 defmodule Claptrap.Storage.Backends.Local do
-  @moduledoc false
+  @moduledoc """
+  Filesystem-backed storage adapter.
+
+  This module implements `Claptrap.Storage.Adapter` by mapping
+  storage keys directly to files inside a configurable root
+  directory. It is the default backend used by `Claptrap.Storage`
+  and is suitable for single-node deployments where network-
+  attached or cloud object storage is not required.
+
+  ## Configuration
+
+  The adapter expects a single configuration key:
+
+    * `:root_dir` — absolute path to the directory where blobs
+      are stored. The directory is created automatically on
+      write if it does not exist.
+
+  Example (in `config/config.exs`):
+
+      config :claptrap, Claptrap.Storage,
+        backend: Claptrap.Storage.Backends.Local,
+        root_dir: "priv/storage"
+
+  ## Path safety
+
+  Every operation resolves the storage key against the root
+  directory using `Path.safe_relative/1`, which rejects path
+  traversal attempts (for example, `"../etc/passwd"`). Keys that
+  escape the root directory raise an `ArgumentError`. This
+  prevents a malformed or malicious key from reading or writing
+  files outside the storage root.
+
+  Nested keys containing `/` separators (such as
+  `"subdir/file.txt"`) are supported. Parent directories are
+  created automatically during writes via `File.mkdir_p!/1`.
+
+  ## Streaming
+
+  Writes consume the incoming `Enumerable` of iodata chunks
+  incrementally, writing each chunk to disk as it arrives. This
+  avoids buffering the entire payload in memory.
+
+  Reads return a lazy `Stream` that emits 64 KiB chunks
+  (`@chunk_size`). The underlying file descriptor is opened when
+  the stream is first consumed and closed automatically when the
+  stream terminates or is halted, following the `Stream.resource/3`
+  lifecycle.
+
+  The read path verifies that the file can be opened before
+  returning the stream. If the file does not exist, `{:error,
+  :not_found}` is returned immediately rather than producing a
+  stream that would fail on first consumption.
+
+  ## Listing
+
+  `list/2` returns the top-level entries in the root directory
+  that match the given prefix. It does not recurse into
+  subdirectories. Results are sorted alphabetically.
+  """
 
   @behaviour Claptrap.Storage.Adapter
 
