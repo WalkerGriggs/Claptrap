@@ -5,9 +5,16 @@ defmodule Claptrap.Storage.Backends.Local do
 
   @chunk_size 65_536
 
+  defp safe_path!(root_dir, key) do
+    case Path.safe_relative(key) do
+      {:ok, safe_key} -> Path.join(root_dir, safe_key)
+      :error -> raise ArgumentError, "key #{inspect(key)} escapes storage root"
+    end
+  end
+
   @impl true
   def write(key, data, %{root_dir: root_dir}) do
-    path = Path.join(root_dir, key)
+    path = safe_path!(root_dir, key)
     file = File.open!(path, [:write, :binary])
 
     try do
@@ -20,7 +27,7 @@ defmodule Claptrap.Storage.Backends.Local do
 
   @impl true
   def read(key, %{root_dir: root_dir}) do
-    path = Path.join(root_dir, key)
+    path = safe_path!(root_dir, key)
 
     if File.exists?(path) do
       {:ok, file_stream(path)}
@@ -35,6 +42,7 @@ defmodule Claptrap.Storage.Backends.Local do
       fn file ->
         case IO.binread(file, @chunk_size) do
           :eof -> {:halt, file}
+          {:error, reason} -> raise IO.StreamError, reason: reason
           data -> {[data], file}
         end
       end,
@@ -44,7 +52,7 @@ defmodule Claptrap.Storage.Backends.Local do
 
   @impl true
   def delete(key, %{root_dir: root_dir}) do
-    path = Path.join(root_dir, key)
+    path = safe_path!(root_dir, key)
 
     case File.rm(path) do
       :ok -> :ok
@@ -71,6 +79,6 @@ defmodule Claptrap.Storage.Backends.Local do
 
   @impl true
   def exists?(key, %{root_dir: root_dir}) do
-    {:ok, File.exists?(Path.join(root_dir, key))}
+    {:ok, File.exists?(safe_path!(root_dir, key))}
   end
 end

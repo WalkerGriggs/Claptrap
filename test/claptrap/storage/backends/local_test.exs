@@ -81,6 +81,24 @@ defmodule Claptrap.Storage.Backends.LocalTest do
     end
   end
 
+  describe "path traversal" do
+    test "write rejects key with ..", %{config: config} do
+      assert_raise ArgumentError, fn -> Local.write("../escape.txt", ["data"], config) end
+    end
+
+    test "read rejects key with ..", %{config: config} do
+      assert_raise ArgumentError, fn -> Local.read("../escape.txt", config) end
+    end
+
+    test "delete rejects key with ..", %{config: config} do
+      assert_raise ArgumentError, fn -> Local.delete("../escape.txt", config) end
+    end
+
+    test "exists? rejects key with ..", %{config: config} do
+      assert_raise ArgumentError, fn -> Local.exists?("../escape.txt", config) end
+    end
+  end
+
   describe "exists?/2" do
     test "true for existing key", %{config: config, tmp_dir: tmp_dir} do
       File.write!(Path.join(tmp_dir, "exists.txt"), "data")
