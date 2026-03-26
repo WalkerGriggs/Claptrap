@@ -66,6 +66,7 @@ defmodule Claptrap.Extractor.Router do
       "Extractor.Router: skipping #{length(entries)} entries " <>
         "(extraction disabled)"
     )
+
     {:noreply, state}
   end
 
@@ -83,9 +84,7 @@ defmodule Claptrap.Extractor.Router do
   end
 
   def handle_info(msg, state) do
-    Logger.warning(
-      "Extractor.Router received unexpected message: #{inspect(msg)}"
-    )
+    Logger.warning("Extractor.Router received unexpected message: #{inspect(msg)}")
     {:noreply, state}
   end
 
