@@ -1,5 +1,15 @@
 defmodule Claptrap.API.Plug do
-  @moduledoc false
+  @moduledoc """
+  Top-level HTTP pipeline for Claptrap's API server.
+  
+  The pipeline logs requests, parses JSON bodies, sets JSON response content
+  type, enforces authentication, and validates request bodies against the
+  OpenAPI spec before dispatching to `Claptrap.API.Router`.
+  
+  Router execution is wrapped in rescue handling so common exception classes map
+  to stable API errors: `Ecto.NoResultsError` to `404`, `Ecto.Query.CastError`
+  to `400`, and all other errors to `500`.
+  """
 
   use Plug.Builder
 

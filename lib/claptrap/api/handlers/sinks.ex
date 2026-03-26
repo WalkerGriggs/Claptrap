@@ -1,5 +1,13 @@
 defmodule Claptrap.API.Handlers.Sinks do
-  @moduledoc false
+  @moduledoc """
+  Router for `/api/v1/sinks` resource endpoints.
+  
+  This handler provides CRUD operations for sinks through `Claptrap.Catalog`.
+  List responses use pagination helpers and all successful responses are shaped
+  by `Claptrap.API.Serializers`.
+  
+  Validation failures from changesets are returned as `422` JSON payloads.
+  """
 
   use Plug.Router
 

@@ -1,5 +1,11 @@
 defmodule Claptrap.API.ApiSpec do
-  @moduledoc false
+  @moduledoc """
+  OpenAPI document builder for the HTTP API.
+  
+  `spec/0` constructs the OpenAPI root object with metadata, server prefix, and
+  merged path definitions from the resource operation modules. It then resolves
+  schema module references with `OpenApiSpex.resolve_schema_modules/1`.
+  """
 
   alias Claptrap.API.Operations
   alias OpenApiSpex.{Info, OpenApi, Server}

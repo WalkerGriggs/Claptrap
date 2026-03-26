@@ -1,5 +1,15 @@
 defmodule Claptrap.API.ValidatePlug do
-  @moduledoc false
+  @moduledoc """
+  Plug that validates request bodies using the OpenAPI spec.
+  
+  For each request, this plug finds the matching OpenAPI operation by HTTP
+  method and path template, resolves that operation's request body schema, and
+  casts the incoming body with `OpenApiSpex.Cast`.
+  
+  If casting fails, it responds with `422` and a field-keyed error payload built
+  from cast errors. If no operation matches, the operation has no request body,
+  or casting succeeds, the connection is passed through unchanged.
+  """
 
   @behaviour Plug
 

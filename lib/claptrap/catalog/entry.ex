@@ -1,5 +1,15 @@
 defmodule Claptrap.Catalog.Entry do
-  @moduledoc false
+  @moduledoc """
+  Ecto schema for normalized content records.
+  
+  Entries represent consumed items in Claptrap's internal model. Each entry
+  belongs to a source, can have many artifacts, and stores normalized metadata
+  such as title, URL, author, publication time, tags, and lifecycle status.
+  
+  The changeset requires `source_id`, `external_id`, `title`, and `status`.
+  Status is constrained to `unread`, `in_progress`, `read`, or `archived`, and
+  `external_id` is unique per source.
+  """
 
   use Ecto.Schema
   import Ecto.Changeset

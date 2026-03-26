@@ -1,5 +1,13 @@
 defmodule Claptrap.API.Handlers.Entries do
-  @moduledoc false
+  @moduledoc """
+  Router for `/api/v1/entries` resource endpoints.
+  
+  This handler supports listing, creating, fetching, and updating entries
+  through `Claptrap.Catalog`. List responses use pagination helpers and
+  serialize entry structs through `Claptrap.API.Serializers`.
+  
+  Validation failures from changesets are returned as `422` JSON payloads.
+  """
 
   use Plug.Router
 

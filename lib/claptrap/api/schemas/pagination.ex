@@ -1,5 +1,11 @@
 defmodule Claptrap.API.Schemas.Pagination do
-  @moduledoc false
+  @moduledoc """
+  Reusable OpenAPI schema helpers for cursor pagination.
+  
+  `page_parameters/0` defines query parameters used by list endpoints, and
+  `paginated_response/1` builds a standard envelope with `items` and optional
+  `next_page_token`.
+  """
 
   alias OpenApiSpex.{Operation, Schema}
 

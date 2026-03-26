@@ -1,5 +1,13 @@
 defmodule Claptrap.Catalog.Subscription do
-  @moduledoc false
+  @moduledoc """
+  Ecto schema for tag-based sink routing rules.
+  
+  A subscription belongs to a sink and stores a list of tags. Routing queries
+  match entries to subscriptions using array overlap semantics, so any shared
+  tag between an entry and a subscription is enough to select that sink.
+  
+  The changeset requires `sink_id` and enforces the sink foreign key constraint.
+  """
 
   use Ecto.Schema
   import Ecto.Changeset

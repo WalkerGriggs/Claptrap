@@ -1,5 +1,14 @@
 defmodule Claptrap.API.Serializers do
-  @moduledoc false
+  @moduledoc """
+  Serializers for Catalog structs returned by API handlers.
+  
+  Each `serialize/1` clause converts a specific Catalog struct into a response
+  map with explicit fields. This module acts as the API output contract and
+  keeps handler code focused on control flow.
+  
+  Credential fields from sources and sinks are intentionally omitted from
+  serialized output.
+  """
 
   alias Claptrap.Catalog.{Entry, Sink, Source, Subscription}
 

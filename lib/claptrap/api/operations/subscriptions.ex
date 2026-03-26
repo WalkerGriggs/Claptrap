@@ -1,5 +1,11 @@
 defmodule Claptrap.API.Operations.Subscriptions do
-  @moduledoc false
+  @moduledoc """
+  OpenAPI definitions for subscription endpoints.
+  
+  The operations cover listing, creating, fetching, and deleting subscriptions,
+  including pagination parameters for list calls and error/validation response
+  contracts.
+  """
 
   alias OpenApiSpex.{Operation, PathItem, Schema}
 

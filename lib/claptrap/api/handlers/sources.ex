@@ -1,5 +1,13 @@
 defmodule Claptrap.API.Handlers.Sources do
-  @moduledoc false
+  @moduledoc """
+  Router for `/api/v1/sources` resource endpoints.
+  
+  This handler provides CRUD operations for sources through `Claptrap.Catalog`.
+  List responses use cursor pagination helpers and serialize items through
+  `Claptrap.API.Serializers`.
+  
+  Validation failures from Ecto changesets are returned as `422` JSON payloads.
+  """
 
   use Plug.Router
 
