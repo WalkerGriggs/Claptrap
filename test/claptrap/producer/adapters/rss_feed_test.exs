@@ -359,7 +359,7 @@ defmodule Claptrap.Producer.Adapters.RssFeedTest do
       assert :ok = RssFeed.materialize(sink, [])
       {:ok, xml, _} = RssFeed.get_feed(sink.id)
       assert xml =~ "<title>No Link</title>"
-      refute xml =~ "<link>"
+      assert [] == xpath(xml, "/rss/channel/item/link")
     end
 
     test "omits <link> when entry url is blank" do
@@ -380,7 +380,7 @@ defmodule Claptrap.Producer.Adapters.RssFeedTest do
       assert :ok = RssFeed.materialize(sink, [])
       {:ok, xml, _} = RssFeed.get_feed(sink.id)
       assert xml =~ "<title>Blank Link</title>"
-      refute xml =~ "<link>"
+      assert [] == xpath(xml, "/rss/channel/item/link")
     end
 
     test "omits <link> when entry url is invalid and omits <author> when blank" do
@@ -402,7 +402,7 @@ defmodule Claptrap.Producer.Adapters.RssFeedTest do
       assert :ok = RssFeed.materialize(sink, [])
       {:ok, xml, _} = RssFeed.get_feed(sink.id)
       assert xml =~ "<title>Invalid Link and Blank Author</title>"
-      refute xml =~ "<link>"
+      assert [] == xpath(xml, "/rss/channel/item/link")
       refute xml =~ "<author>"
     end
 
