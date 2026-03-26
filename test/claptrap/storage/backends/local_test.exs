@@ -25,6 +25,11 @@ defmodule Claptrap.Storage.Backends.LocalTest do
       config = %{root_dir: "/nonexistent_#{:erlang.unique_integer([:positive])}"}
       assert_raise File.Error, fn -> Local.write("test.txt", ["data"], config) end
     end
+
+    test "creates parent directories for nested keys", %{config: config, tmp_dir: tmp_dir} do
+      :ok = Local.write("subdir/nested/file.txt", ["nested data"], config)
+      assert File.read!(Path.join(tmp_dir, "subdir/nested/file.txt")) == "nested data"
+    end
   end
 
   describe "read/2" do

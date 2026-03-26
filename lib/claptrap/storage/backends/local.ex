@@ -15,6 +15,7 @@ defmodule Claptrap.Storage.Backends.Local do
   @impl true
   def write(key, data, %{root_dir: root_dir}) do
     path = safe_path!(root_dir, key)
+    File.mkdir_p!(Path.dirname(path))
     file = File.open!(path, [:write, :binary])
 
     try do
@@ -29,16 +30,21 @@ defmodule Claptrap.Storage.Backends.Local do
   def read(key, %{root_dir: root_dir}) do
     path = safe_path!(root_dir, key)
 
-    if File.exists?(path) do
-      {:ok, file_stream(path)}
-    else
-      {:error, :not_found}
+    case File.open(path, [:read, :binary]) do
+      {:ok, file} ->
+        {:ok, file_stream(file)}
+
+      {:error, :enoent} ->
+        {:error, :not_found}
+
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 
-  defp file_stream(path) do
+  defp file_stream(file) do
     Stream.resource(
-      fn -> File.open!(path, [:read, :binary]) end,
+      fn -> file end,
       fn file ->
         case IO.binread(file, @chunk_size) do
           :eof -> {:halt, file}
