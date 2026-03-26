@@ -40,6 +40,8 @@ defmodule Claptrap.Storage do
     unless Regex.match?(@key_pattern, key) do
       raise ArgumentError, "invalid storage key: #{inspect(key)}"
     end
+
+    :ok
   end
 
   defp validate_prefix!(""), do: :ok
@@ -48,5 +50,7 @@ defmodule Claptrap.Storage do
     unless Regex.match?(@prefix_pattern, prefix) do
       raise ArgumentError, "invalid storage prefix: #{inspect(prefix)}"
     end
+
+    :ok
   end
 end
