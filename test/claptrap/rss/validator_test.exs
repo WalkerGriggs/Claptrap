@@ -157,6 +157,41 @@ defmodule Claptrap.RSS.ValidatorTest do
     test "link with ftp scheme passes" do
       assert :ok = Validator.validate(%{valid_feed() | link: "ftp://files.example.com"})
     end
+
+    test "link with mailto scheme passes" do
+      assert :ok = Validator.validate(%{valid_feed() | link: "mailto:admin@example.com"})
+    end
+
+    test "link with news scheme passes" do
+      assert :ok = Validator.validate(%{valid_feed() | link: "news:comp.lang.elixir"})
+    end
+
+    test "link with tel scheme passes" do
+      assert :ok = Validator.validate(%{valid_feed() | link: "tel:+1-555-0100"})
+    end
+
+    test "link with urn scheme passes" do
+      assert :ok =
+               Validator.validate(%{valid_feed() | link: "urn:isbn:0451450523"})
+    end
+
+    test "bare domain without scheme returns :format error" do
+      feed = %{valid_feed() | link: "www.example.com"}
+      errors = errors_for(feed)
+      assert has_error?(errors, rule: :format, path: [:link])
+    end
+
+    test "relative path without scheme returns :format error" do
+      feed = %{valid_feed() | link: "/path/to/resource"}
+      errors = errors_for(feed)
+      assert has_error?(errors, rule: :format, path: [:link])
+    end
+
+    test "empty colon without scheme name returns :format error" do
+      feed = %{valid_feed() | link: "://example.com"}
+      errors = errors_for(feed)
+      assert has_error?(errors, rule: :format, path: [:link])
+    end
   end
 
   describe "channel ttl" do
@@ -240,6 +275,16 @@ defmodule Claptrap.RSS.ValidatorTest do
 
     test "item without link passes" do
       feed = add_item(valid_feed(), %Item{title: "T"})
+      assert :ok = Validator.validate(feed)
+    end
+
+    test "item with mailto link passes" do
+      feed = add_item(valid_feed(), %Item{title: "T", link: "mailto:user@example.com"})
+      assert :ok = Validator.validate(feed)
+    end
+
+    test "item with news link passes" do
+      feed = add_item(valid_feed(), %Item{title: "T", link: "news:comp.lang.elixir"})
       assert :ok = Validator.validate(feed)
     end
   end
@@ -710,6 +755,15 @@ defmodule Claptrap.RSS.ValidatorTest do
         assert Enum.any?(errors, &(&1.path == [:image, :height] and &1.rule == :range))
       end
     end
+
+    property "link with any valid URI scheme passes" do
+      check all(
+              feed <- valid_feed_gen(),
+              uri <- valid_scheme_uri_gen()
+            ) do
+        assert :ok = Validator.validate(%{feed | link: uri})
+      end
+    end
   end
 
   # -- StreamData generators ---------------------------------------------
@@ -726,6 +780,20 @@ defmodule Claptrap.RSS.ValidatorTest do
   defp non_empty_string_gen do
     gen all(s <- string(:alphanumeric, min_length: 1, max_length: 50)) do
       s
+    end
+  end
+
+  defp valid_scheme_uri_gen do
+    scheme_start = StreamData.member_of(Enum.to_list(?a..?z))
+    scheme_rest = string(Enum.flat_map([?a..?z, ?0..?9, [?+, ?-, ?.]], &Enum.to_list/1), max_length: 8)
+    body = string(:alphanumeric, min_length: 1, max_length: 30)
+
+    gen all(
+          first <- scheme_start,
+          rest <- scheme_rest,
+          b <- body
+        ) do
+      <<first>> <> rest <> ":" <> b
     end
   end
 end

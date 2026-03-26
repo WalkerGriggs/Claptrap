@@ -5,7 +5,6 @@ defmodule Claptrap.RSS.Validator do
 
   @valid_days ~w(Monday Tuesday Wednesday Thursday Friday Saturday Sunday)
   @valid_cloud_protocols ~w(xml-rpc soap http-post)
-  @url_scheme_pattern ~r/\A[a-zA-Z][a-zA-Z0-9+\-.]*:\/\//
 
   @spec validate(Feed.t()) :: :ok | {:error, [ValidationError.t()]}
   def validate(%Feed{} = feed) do
@@ -286,7 +285,13 @@ defmodule Claptrap.RSS.Validator do
   defp non_empty_string?(value) when is_binary(value) and byte_size(value) > 0, do: true
   defp non_empty_string?(_), do: false
 
-  defp url?(value) when is_binary(value), do: Regex.match?(@url_scheme_pattern, value)
+  defp url?(value) when is_binary(value) do
+    case URI.parse(value) do
+      %URI{scheme: scheme} when is_binary(scheme) and byte_size(scheme) > 0 -> true
+      _ -> false
+    end
+  end
+
   defp url?(_), do: false
 
   defp error(message, path, rule) do
