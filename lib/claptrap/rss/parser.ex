@@ -110,11 +110,12 @@ defmodule Claptrap.RSS.Parser do
     categories = extract_categories(children)
     skip_hours = extract_skip_hours(children)
     skip_days = extract_skip_days(children)
-    items = extract_items(children, namespaces, strict, date_module)
+    items_result = extract_items(children, namespaces, strict, date_module)
     channel_extensions = extract_extensions(children, namespaces)
 
     with :ok <- validate_required_scalars(scalars, strict),
-         :ok <- validate_dates(dates, strict) do
+         :ok <- validate_dates(dates, strict),
+         {:ok, items} <- items_result do
       feed = %Feed{
         title: scalars[:title] || "",
         link: scalars[:link] || "",
@@ -387,37 +388,48 @@ defmodule Claptrap.RSS.Parser do
   defp extract_items(children, feed_namespaces, strict, date_module) do
     children
     |> Enum.filter(&(element_name(&1) == "item"))
-    |> Enum.map(&parse_item(&1, feed_namespaces, strict, date_module))
+    |> Enum.reduce_while({:ok, []}, fn el, {:ok, acc} ->
+      case parse_item(el, feed_namespaces, strict, date_module) do
+        {:ok, item} -> {:cont, {:ok, [item | acc]}}
+        {:error, error} -> {:halt, {:error, error}}
+      end
+    end)
+    |> case do
+      {:ok, items} -> {:ok, Enum.reverse(items)}
+      {:error, error} -> {:error, error}
+    end
   end
 
   defp parse_item(el, feed_namespaces, strict, date_module) do
     children = child_elements(el)
 
     pub_date_raw = text_of(children, "pubDate")
-
-    pub_date =
-      case parse_date(pub_date_raw, strict, date_module) do
-        {:date_error, _} -> nil
-        other -> other
-      end
+    pub_date = parse_date(pub_date_raw, strict, date_module)
 
     item_namespaces = extract_element_namespaces(el)
     merged_namespaces = Map.merge(feed_namespaces, item_namespaces)
     extensions = extract_extensions(children, merged_namespaces)
 
-    %Item{
-      title: text_of(children, "title"),
-      link: text_of(children, "link"),
-      description: text_of(children, "description"),
-      author: text_of(children, "author"),
-      comments: text_of(children, "comments"),
-      pub_date: pub_date,
-      enclosure: extract_enclosure(children),
-      guid: extract_guid(children),
-      source: extract_source(children),
-      categories: extract_categories(children),
-      extensions: extensions
-    }
+    case pub_date do
+      {:date_error, raw} ->
+        {:error, %ParseError{reason: :malformed_date, message: "malformed date: #{raw}"}}
+
+      _ ->
+        {:ok,
+         %Item{
+           title: text_of(children, "title"),
+           link: text_of(children, "link"),
+           description: text_of(children, "description"),
+           author: text_of(children, "author"),
+           comments: text_of(children, "comments"),
+           pub_date: pub_date,
+           enclosure: extract_enclosure(children),
+           guid: extract_guid(children),
+           source: extract_source(children),
+           categories: extract_categories(children),
+           extensions: extensions
+         }}
+    end
   end
 
   defp extract_enclosure(children) do
