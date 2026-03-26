@@ -73,7 +73,7 @@ defmodule Claptrap.Storage.Backends.LocalTest do
     test "propagates error when key resolves to a directory", %{config: config, tmp_dir: tmp_dir} do
       File.mkdir_p!(Path.join(tmp_dir, "a_directory"))
       assert {:error, reason} = Local.delete("a_directory", config)
-      assert reason in [:eperm, :eacces]
+      assert reason in [:eperm, :eacces, :eisdir]
     end
   end
 
