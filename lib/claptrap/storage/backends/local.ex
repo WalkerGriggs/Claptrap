@@ -1,5 +1,43 @@
 defmodule Claptrap.Storage.Backends.Local do
-  @moduledoc false
+  @moduledoc """
+  Filesystem-backed implementation of `Claptrap.Storage.Adapter`.
+
+  Objects live under a single directory given by `root_dir` in the config map.
+  Each storage key is joined under that root using `Path.safe_relative/1`. If
+  the key is not a safe relative path (for example it contains `..` or
+  separators that escape the root), the function raises `ArgumentError`. This
+  is an extra guard in addition to the key format checks applied by
+  `Claptrap.Storage`.
+
+  ## Writing and reading
+
+  `write/3` creates parent directories as needed, opens the destination file
+  in binary mode, writes each chunk from the enumerable with `IO.binwrite/2`,
+  and closes the file in an `after` block. An empty enumerable still creates
+  an empty file.
+
+  `read/2` returns `{:ok, stream}` where `stream` is a `Stream.resource/3`
+  that reads the file in chunks of 65536 bytes. If the file is missing, the
+  result is `{:error, :not_found}`. Other `File.open/2` failures are returned
+  as `{:error, reason}`. Opening a path that is a directory yields an error
+  such as `{:error, :eisdir}`.
+
+  ## Listing
+
+  `list/2` calls `File.ls/1` on `root_dir` only (not recursive). Returned
+  names are filtered with `String.starts_with?/2` against the given prefix,
+  sorted with `Enum.sort/1`, and returned as `{:ok, keys}`. Nested keys such
+  as `"a/b/c"` create subdirectories on disk; listing still only enumerates
+  the immediate entries in `root_dir`, so results reflect directory entries
+  at that top level rather than every logical key path.
+
+  ## Deletion and existence
+
+  `delete/2` uses `File.rm/1`. A missing file becomes `{:error, :not_found}`.
+
+  `exists?/2` returns `{:ok, true}` or `{:ok, false}` for the resolved path
+  using `File.exists?/1` and does not treat a missing file as an error tuple.
+  """
 
   @behaviour Claptrap.Storage.Adapter
 

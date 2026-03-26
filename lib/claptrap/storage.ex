@@ -1,5 +1,34 @@
 defmodule Claptrap.Storage do
-  @moduledoc false
+  @moduledoc """
+  Application-facing API for storing and retrieving binary blobs by string
+  key.
+
+  This module is a thin facade over a configurable backend. It reads
+  `Application.fetch_env!(:claptrap, Claptrap.Storage)`, takes the `:backend`
+  value as the module that implements `Claptrap.Storage.Adapter`, and passes
+  all other keyword options to that backend as a map (without the `:backend`
+  key). For example, `config.exs` sets
+  `backend: Claptrap.Storage.Backends.Local` and `root_dir: ...` for the
+  default local filesystem backend.
+
+  ## Operations
+
+  Callers use `write/2`, `read/1`, `delete/1`, `list/1`, and `exists?/1`.
+  Return shapes and error atoms come from the active backend; the facade does
+  not reinterpret them beyond key and prefix validation.
+
+  ## Keys and prefixes
+
+  Keys must match a restricted pattern: a non-empty string whose first
+  character is alphanumeric and whose remaining characters are only letters,
+  digits, dot, underscore, or hyphen. Invalid keys raise `ArgumentError`
+  before the backend runs. This rejects path separators, spaces, and other
+  characters that would be unsafe or ambiguous for storage paths.
+
+  For `list/1`, the optional prefix follows the same pattern as keys, except
+  the empty string is allowed and means "no prefix filter" for backends that
+  support listing.
+  """
 
   @key_pattern ~r/\A[a-zA-Z0-9][a-zA-Z0-9._-]*\z/
   @prefix_pattern ~r/\A[a-zA-Z0-9][a-zA-Z0-9._-]*\z/
