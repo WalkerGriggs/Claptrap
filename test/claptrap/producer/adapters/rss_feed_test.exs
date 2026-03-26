@@ -362,6 +362,27 @@ defmodule Claptrap.Producer.Adapters.RssFeedTest do
       refute xml =~ "<link>"
     end
 
+    test "omits <link> when entry url is blank" do
+      {:ok, source} = Catalog.create_source(@source_attrs)
+      {:ok, sink} = Catalog.create_sink(@sink_attrs)
+      {:ok, _sub} = Catalog.create_subscription(%{sink_id: sink.id, tags: ["test"]})
+
+      {:ok, _} =
+        Catalog.create_entry(%{
+          source_id: source.id,
+          external_id: "blank-link",
+          title: "Blank Link",
+          url: "   ",
+          status: "unread",
+          tags: ["test"]
+        })
+
+      assert :ok = RssFeed.materialize(sink, [])
+      {:ok, xml, _} = RssFeed.get_feed(sink.id)
+      assert xml =~ "<title>Blank Link</title>"
+      refute xml =~ "<link>"
+    end
+
     test "omits <link> when entry url is invalid and omits <author> when blank" do
       {:ok, source} = Catalog.create_source(@source_attrs)
       {:ok, sink} = Catalog.create_sink(@sink_attrs)
@@ -404,6 +425,29 @@ defmodule Claptrap.Producer.Adapters.RssFeedTest do
       {:ok, xml, _} = RssFeed.get_feed(sink.id)
       assert xml =~ "<title>No Author</title>"
       assert xml =~ "<link>https://example.com/no-author</link>"
+      refute xml =~ "<author>"
+    end
+
+    test "omits <author> when entry author is blank" do
+      {:ok, source} = Catalog.create_source(@source_attrs)
+      {:ok, sink} = Catalog.create_sink(@sink_attrs)
+      {:ok, _sub} = Catalog.create_subscription(%{sink_id: sink.id, tags: ["test"]})
+
+      {:ok, _} =
+        Catalog.create_entry(%{
+          source_id: source.id,
+          external_id: "blank-author",
+          title: "Blank Author",
+          url: "https://example.com/blank-author",
+          author: "",
+          status: "unread",
+          tags: ["test"]
+        })
+
+      assert :ok = RssFeed.materialize(sink, [])
+      {:ok, xml, _} = RssFeed.get_feed(sink.id)
+      assert xml =~ "<title>Blank Author</title>"
+      assert xml =~ "<link>https://example.com/blank-author</link>"
       refute xml =~ "<author>"
     end
 

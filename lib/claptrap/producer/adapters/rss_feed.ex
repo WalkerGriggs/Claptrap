@@ -37,6 +37,7 @@ defmodule Claptrap.Producer.Adapters.RssFeed do
 
   alias Claptrap.Catalog
   alias Claptrap.Catalog.{Entry, Sink}
+  alias Claptrap.Producer.Adapters.RssUri
 
   @ets_table :claptrap_rss_feeds
   @default_max_entries 50
@@ -121,7 +122,7 @@ defmodule Claptrap.Producer.Adapters.RssFeed do
 
   defp maybe_link_tag(url) do
     with value when not is_nil(value) <- present_text(url),
-         true <- valid_uri_with_scheme?(value) do
+         true <- RssUri.valid_with_scheme?(value) do
       "      <link>#{escape(value)}</link>"
     else
       _ -> nil
@@ -148,16 +149,6 @@ defmodule Claptrap.Producer.Adapters.RssFeed do
   end
 
   defp present_text(_), do: nil
-
-  defp valid_uri_with_scheme?(value) do
-    case URI.new(value) do
-      {:ok, %URI{scheme: scheme}} when is_binary(scheme) ->
-        Regex.match?(~r/^[A-Za-z][A-Za-z0-9+.-]*$/, scheme)
-
-      _ ->
-        false
-    end
-  end
 
   @day_names ~w(Mon Tue Wed Thu Fri Sat Sun)
   @month_names ~w(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec)
