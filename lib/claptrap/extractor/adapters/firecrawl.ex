@@ -1,5 +1,35 @@
 defmodule Claptrap.Extractor.Adapters.Firecrawl do
-  @moduledoc false
+  @moduledoc """
+  Firecrawl-backed implementation of `Claptrap.Extractor.Adapter`.
+
+  This adapter calls Firecrawl's scrape API and normalizes the response into
+  the extractor contract used by `Claptrap.Extractor.Pipeline`.
+
+  Runtime configuration:
+
+  - `:claptrap, :firecrawl`
+    - `:api_key` sent as a Bearer token
+    - `:base_url` defaults to `"https://api.firecrawl.dev"`
+  - `:claptrap, :firecrawl_req_options`
+    - optional `Req` options merged into the request (used by tests and
+      transport tuning)
+
+  Request shape:
+
+  - `POST /v1/scrape`
+  - JSON body: `%{"url" => url, "formats" => [format]}`
+
+  Return behavior:
+
+  - HTTP `200`: returns `{:ok, result}` if `body["data"][format]` is present
+  - HTTP non-`200`: returns `{:error, %{status: status, body: body}}`
+  - Transport error from `Req`: returns `{:error, reason}`
+  - Missing extracted content for the requested format: returns
+    `{:error, %{reason: :missing_content, format: format}}`
+
+  Supported formats are `"markdown"` and `"html"`. The adapter maps these
+  formats to content types `"text/markdown"` and `"text/html"` respectively.
+  """
 
   @behaviour Claptrap.Extractor.Adapter
 
