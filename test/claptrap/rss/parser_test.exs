@@ -390,6 +390,20 @@ defmodule Claptrap.RSS.ParserTest do
       assert feed.pub_date == nil
     end
 
+    test "malformed item pubDate becomes nil" do
+      xml =
+        minimal_feed("""
+          <item>
+            <title>Bad Date Item</title>
+            <pubDate>not-a-date</pubDate>
+          </item>
+        """)
+
+      assert {:ok, feed} = Parser.parse(xml)
+      assert [item] = feed.items
+      assert item.pub_date == nil
+    end
+
     test "duplicate title takes first occurrence" do
       xml =
         minimal_feed("""
@@ -498,6 +512,19 @@ defmodule Claptrap.RSS.ParserTest do
     test "malformed date returns ParseError" do
       xml = minimal_feed("<pubDate>not-a-date</pubDate>")
       assert {:error, %ParseError{reason: :malformed_date}} = Parser.parse(xml, strict: true)
+    end
+
+    test "malformed item pubDate returns ParseError" do
+      xml =
+        minimal_feed("""
+          <item>
+            <title>Bad Date Item</title>
+            <pubDate>not-a-date</pubDate>
+          </item>
+        """)
+
+      assert {:error, %ParseError{reason: :malformed_date, message: "malformed date: not-a-date"}} =
+               Parser.parse(xml, strict: true)
     end
 
     test "valid feed parses successfully in strict mode" do
