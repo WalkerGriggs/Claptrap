@@ -132,8 +132,7 @@ defmodule Claptrap.E2E.SubscriptionsTest do
       assert length(page1["items"]) == 2
       assert page1["next_page_token"]
 
-      {200, page2} =
-        http_get("/api/v1/subscriptions?page_size=2&page_token=#{page1["next_page_token"]}")
+      {200, page2} = http_get("/api/v1/subscriptions?page_size=2&page_token=#{page1["next_page_token"]}")
 
       assert length(page2["items"]) == 1
       refute Map.has_key?(page2, "next_page_token")

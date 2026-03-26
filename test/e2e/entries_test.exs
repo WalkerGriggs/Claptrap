@@ -134,8 +134,7 @@ defmodule Claptrap.E2E.EntriesTest do
       source = create_source(ctx)
       {201, created} = http_post("/api/v1/entries", entry_params(source["id"]))
 
-      {status, body} =
-        http_patch("/api/v1/entries/#{created["id"]}", %{"status" => "deleted"})
+      {status, body} = http_patch("/api/v1/entries/#{created["id"]}", %{"status" => "deleted"})
 
       assert status == 422
       assert %{"errors" => %{"status" => _}} = body
@@ -146,14 +145,12 @@ defmodule Claptrap.E2E.EntriesTest do
     test "transitions through unread -> in_progress -> read -> archived", ctx do
       source = create_source(ctx)
 
-      {201, created} =
-        http_post("/api/v1/entries", entry_params(source["id"], %{"status" => "unread"}))
+      {201, created} = http_post("/api/v1/entries", entry_params(source["id"], %{"status" => "unread"}))
 
       assert created["status"] == "unread"
 
       for next_status <- ["in_progress", "read", "archived"] do
-        {status, body} =
-          http_patch("/api/v1/entries/#{created["id"]}", %{"status" => next_status})
+        {status, body} = http_patch("/api/v1/entries/#{created["id"]}", %{"status" => next_status})
 
         assert status == 200
         assert body["status"] == next_status
@@ -201,8 +198,7 @@ defmodule Claptrap.E2E.EntriesTest do
       assert length(page1["items"]) == 2
       assert page1["next_page_token"]
 
-      {200, page2} =
-        http_get("/api/v1/entries?page_size=2&page_token=#{page1["next_page_token"]}")
+      {200, page2} = http_get("/api/v1/entries?page_size=2&page_token=#{page1["next_page_token"]}")
 
       assert length(page2["items"]) == 1
       refute Map.has_key?(page2, "next_page_token")
@@ -223,8 +219,7 @@ defmodule Claptrap.E2E.EntriesTest do
 
       {200, before_delete} = http_get("/api/v1/entries")
 
-      cascade_entries =
-        Enum.filter(before_delete["items"], &(&1["source_id"] == source["id"]))
+      cascade_entries = Enum.filter(before_delete["items"], &(&1["source_id"] == source["id"]))
 
       assert length(cascade_entries) == 2
 
@@ -232,8 +227,7 @@ defmodule Claptrap.E2E.EntriesTest do
 
       {200, after_delete} = http_get("/api/v1/entries")
 
-      remaining =
-        Enum.filter(after_delete["items"], &(&1["source_id"] == source["id"]))
+      remaining = Enum.filter(after_delete["items"], &(&1["source_id"] == source["id"]))
 
       assert remaining == []
     end

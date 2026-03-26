@@ -1,11 +1,11 @@
 defmodule Claptrap.API.Handlers.Subscriptions do
   @moduledoc """
   Router for `/api/v1/subscriptions` endpoints.
-  
+
   This handler supports listing, creating, fetching, and deleting subscriptions
   through `Claptrap.Catalog`. List responses are paginated and item payloads are
   serialized through `Claptrap.API.Serializers`.
-  
+
   Validation failures from changesets are returned as `422` JSON payloads.
   """
 

@@ -1,7 +1,7 @@
 defmodule Claptrap.API.Operations.Sources do
   @moduledoc """
   OpenAPI path and operation definitions for source endpoints.
-  
+
   This module declares documentation metadata for listing, creating, fetching,
   updating, and deleting sources, including expected parameters, request bodies,
   and response schemas.

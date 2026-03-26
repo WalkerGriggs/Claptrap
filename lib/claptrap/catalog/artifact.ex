@@ -1,11 +1,11 @@
 defmodule Claptrap.Catalog.Artifact do
   @moduledoc """
   Ecto schema for derived entry representations.
-  
+
   Artifacts attach extracted or transformed content to an entry, keyed by output
   format. The schema stores payload metadata including MIME type, byte size,
   extractor name, and arbitrary structured metadata.
-  
+
   The changeset requires `entry_id`, `format`, and `extractor`. `format` is
   limited to `markdown`, `html`, or `pdf`, and `{entry_id, format}` is unique.
   """

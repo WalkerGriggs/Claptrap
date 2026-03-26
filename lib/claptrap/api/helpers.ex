@@ -1,7 +1,7 @@
 defmodule Claptrap.API.Helpers do
   @moduledoc """
   Shared helpers for API handlers.
-  
+
   `json/3` sends JSON responses with a provided status code, and
   `changeset_errors/1` turns Ecto changeset errors into a field-keyed map of
   human-readable messages.

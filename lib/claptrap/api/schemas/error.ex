@@ -1,7 +1,7 @@
 defmodule Claptrap.API.Schemas.Error do
   @moduledoc """
   OpenAPI schema for basic error responses.
-  
+
   This schema represents payloads with a single `error` message field.
   """
 

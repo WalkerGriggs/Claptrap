@@ -63,8 +63,7 @@ defmodule Claptrap.Producer.Adapters.RssFeedTest do
     end
 
     test "rejects config without description" do
-      assert {:error, "missing required key: description"} =
-               RssFeed.validate_config(%{"max_entries" => 25})
+      assert {:error, "missing required key: description"} = RssFeed.validate_config(%{"max_entries" => 25})
     end
 
     test "rejects config with non-integer max_entries" do

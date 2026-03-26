@@ -1,11 +1,11 @@
 defmodule Claptrap.Catalog.Source do
   @moduledoc """
   Ecto schema for configured upstream content sources.
-  
+
   A source defines where content is consumed from (`type`, `config`) and carries
   operational metadata such as `enabled`, `last_consumed_at`, and source-level
   `tags`. Sources own many entries.
-  
+
   The changeset requires `type`, `name`, and `config`, and enforces that `type`
   and `name` are not empty strings.
   """

@@ -1,7 +1,7 @@
 defmodule Claptrap.API.Schemas.SinkResponse do
   @moduledoc """
   OpenAPI schema module for sink response objects.
-  
+
   The schema models the JSON payload returned for sink resources, including
   identity, configuration, enabled state, and timestamps.
   """
@@ -28,7 +28,7 @@ end
 defmodule Claptrap.API.Schemas.CreateSinkRequest do
   @moduledoc """
   OpenAPI schema for sink creation requests.
-  
+
   This schema documents the request body accepted by `POST /sinks` and marks
   `type`, `name`, and `config` as required fields.
   """
@@ -53,7 +53,7 @@ end
 defmodule Claptrap.API.Schemas.UpdateSinkRequest do
   @moduledoc """
   OpenAPI schema for sink update requests.
-  
+
   This schema documents partial attributes accepted by `PATCH /sinks/{id}`.
   """
 

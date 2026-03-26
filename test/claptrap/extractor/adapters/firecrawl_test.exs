@@ -96,8 +96,7 @@ defmodule Claptrap.Extractor.Adapters.FirecrawlTest do
     test "network timeout" do
       Req.Test.expect(Firecrawl, &Req.Test.transport_error(&1, :timeout))
 
-      assert {:error, %Req.TransportError{reason: :timeout}} =
-               Firecrawl.extract("https://example.com", "markdown", %{})
+      assert {:error, %Req.TransportError{reason: :timeout}} = Firecrawl.extract("https://example.com", "markdown", %{})
     end
 
     test "malformed response missing data fields" do
@@ -107,8 +106,7 @@ defmodule Claptrap.Extractor.Adapters.FirecrawlTest do
         |> send_resp(200, Jason.encode!(%{"success" => true, "data" => %{}}))
       end)
 
-      assert {:error, %{reason: :missing_content}} =
-               Firecrawl.extract("https://example.com", "markdown", %{})
+      assert {:error, %{reason: :missing_content}} = Firecrawl.extract("https://example.com", "markdown", %{})
     end
   end
 end

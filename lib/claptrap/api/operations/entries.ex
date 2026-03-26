@@ -1,7 +1,7 @@
 defmodule Claptrap.API.Operations.Entries do
   @moduledoc """
   OpenAPI definitions for entry endpoints.
-  
+
   The operations cover listing, creating, fetching, and updating entries,
   including pagination parameters for list calls and validation or lookup errors
   for write and read paths.

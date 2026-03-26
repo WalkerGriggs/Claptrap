@@ -126,8 +126,7 @@ defmodule Claptrap.E2E.SinksTest do
     test "paginates with page_size and page_token", ctx do
       ids =
         for i <- 1..3 do
-          {201, created} =
-            http_post("/api/v1/sinks", %{@valid_params | "name" => "Sink #{i}"})
+          {201, created} = http_post("/api/v1/sinks", %{@valid_params | "name" => "Sink #{i}"})
 
           track_cleanup(ctx, "/api/v1/sinks/#{created["id"]}")
           created["id"]

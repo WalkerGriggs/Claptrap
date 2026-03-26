@@ -1,11 +1,11 @@
 defmodule Claptrap.Catalog.Server do
   @moduledoc """
   A minimal GenServer wrapper for catalog state.
-  
+
   The server currently exists as a lightweight process that can be supervised
   and addressed by name. It exposes `list_sources/1` as a synchronous call, and
   the current callback implementation returns an empty list.
-  
+
   This module is intentionally small in the current codebase and currently
   returns an empty list for `list_sources/1`.
   """

@@ -1,7 +1,7 @@
 defmodule Claptrap.API.Schemas.ValidationError do
   @moduledoc """
   OpenAPI schema for validation error responses.
-  
+
   The schema models a map of field names to lists of human-readable validation
   messages.
   """

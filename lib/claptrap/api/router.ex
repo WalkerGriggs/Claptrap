@@ -1,11 +1,11 @@
 defmodule Claptrap.API.Router do
   @moduledoc """
   Root router for health checks and versioned API forwarding.
-  
+
   This router serves process and dependency probes (`/health`, `/ready`),
   exposes the generated OpenAPI document at `/api/v1/openapi`, and forwards
   resource routes under `/api/v1/*` to dedicated handler routers.
-  
+
   Readiness is database-backed. `/ready` returns `200` only when `SELECT 1`
   succeeds against the configured repository, otherwise it returns `503`.
   """

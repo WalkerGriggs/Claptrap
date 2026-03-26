@@ -1,7 +1,7 @@
 defmodule Claptrap.API.Schemas.EntryResponse do
   @moduledoc """
   OpenAPI schema module for entry response objects.
-  
+
   The schema models normalized entry payloads returned by the API, including
   source identity, status, optional metadata fields, tags, and timestamps.
   """
@@ -46,7 +46,7 @@ end
 defmodule Claptrap.API.Schemas.CreateEntryRequest do
   @moduledoc """
   OpenAPI schema for entry creation requests.
-  
+
   This schema documents the request body accepted by `POST /entries` and
   requires `source_id`, `external_id`, `title`, and `status`.
   """
@@ -86,7 +86,7 @@ end
 defmodule Claptrap.API.Schemas.UpdateEntryRequest do
   @moduledoc """
   OpenAPI schema for entry update requests.
-  
+
   This schema documents partial entry updates accepted by `PATCH /entries/{id}`.
   Only status and tags are declared in the request shape.
   """
