@@ -27,9 +27,9 @@ defmodule Claptrap.Producer.Adapters.RssFeed do
 
   - Adapter mode is always `:pull`.
   - `push/2` is not supported and returns `{:error, :not_supported}`.
-  - `validate_config/1` requires `"description"` and `"link"` keys and
-    validates that `"link"` is a non-empty absolute URL.
-  - `validate_config/1` validates `"max_entries"` when provided.
+  - `validate_config/1` requires non-empty `"description"` and `"link"` values,
+    validates that link is an absolute HTTP(S) URI, and validates
+    `"max_entries"` when provided.
   - XML escaping is applied to text fields to keep output well-formed.
   """
 
@@ -57,20 +57,11 @@ defmodule Claptrap.Producer.Adapters.RssFeed do
   end
 
   @impl true
-  def validate_config(%{"description" => _, "link" => _, "max_entries" => n})
-      when not is_integer(n) or n < 1,
-      do: {:error, "max_entries must be a positive integer"}
-
-  def validate_config(%{"description" => _, "link" => link}) do
-    validate_link(link)
-  end
-
-  def validate_config(%{"description" => _}), do: {:error, "missing required key: link"}
-
-  def validate_config(%{"link" => _}), do: {:error, "missing required key: description"}
-
   def validate_config(config) when is_map(config) do
-    {:error, "missing required keys: description, link"}
+    with :ok <- validate_description(config),
+         :ok <- validate_link(config) do
+      validate_max_entries(config)
+    end
   end
 
   def validate_config(_), do: {:error, "config must be a map"}
@@ -129,33 +120,47 @@ defmodule Claptrap.Producer.Adapters.RssFeed do
   @day_names ~w(Mon Tue Wed Thu Fri Sat Sun)
   @month_names ~w(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec)
 
-  defp validate_link(link) when is_binary(link) do
-    trimmed = String.trim(link)
-
-    cond do
-      trimmed == "" ->
-        {:error, "link must be a non-empty string"}
-
-      valid_absolute_url?(trimmed) ->
-        :ok
-
-      true ->
-        {:error, "link must be an absolute URL with scheme and host"}
+  defp validate_description(%{"description" => description}) when is_binary(description) do
+    if String.trim(description) == "" do
+      {:error, "description must be a non-empty string"}
+    else
+      :ok
     end
   end
 
-  defp validate_link(_), do: {:error, "link must be a non-empty string"}
+  defp validate_description(%{"description" => _}),
+    do: {:error, "description must be a non-empty string"}
 
-  defp valid_absolute_url?(value) do
-    case URI.parse(value) do
-      %URI{scheme: scheme, host: host}
-      when is_binary(scheme) and scheme != "" and is_binary(host) and host != "" ->
-        true
+  defp validate_description(_),
+    do: {:error, "missing required key: description"}
 
-      _ ->
-        false
+  defp validate_link(%{"link" => link}) when is_binary(link) do
+    case String.trim(link) do
+      "" -> {:error, "link must be a non-empty absolute URI with http or https scheme"}
+      trimmed_link -> validate_absolute_http_uri(trimmed_link)
     end
   end
+
+  defp validate_link(%{"link" => _}),
+    do: {:error, "link must be a non-empty absolute URI with http or https scheme"}
+
+  defp validate_link(_),
+    do: {:error, "missing required key: link"}
+
+  defp validate_absolute_http_uri(link) do
+    uri = URI.parse(link)
+
+    if uri.scheme in ["http", "https"] and is_binary(uri.host) and uri.host != "" do
+      :ok
+    else
+      {:error, "link must be a non-empty absolute URI with http or https scheme"}
+    end
+  end
+
+  defp validate_max_entries(%{"max_entries" => n}) when not is_integer(n) or n < 1,
+    do: {:error, "max_entries must be a positive integer"}
+
+  defp validate_max_entries(_), do: :ok
 
   defp rfc2822(nil), do: ""
 
