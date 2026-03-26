@@ -1,5 +1,39 @@
 defmodule Claptrap.Consumer.Coordinator do
-  @moduledoc "Periodically reconciles running consumer workers with catalog sources."
+  @moduledoc """
+  Reconciles running consumer workers with enabled catalog sources.
+
+  The coordinator is the control-plane process for the Consumer subsystem. It
+  does not fetch source data itself. Instead, it periodically ensures there is
+  a `Claptrap.Consumer.Worker` process for each enabled source returned by the
+  catalog.
+
+  ## Responsibilities
+
+    * Run an initial reconciliation at boot via `handle_continue/2`.
+    * Reconcile again on a fixed `:tick` interval (30 seconds).
+    * Start missing workers under `Claptrap.Consumer.WorkerSupervisor`.
+    * Avoid duplicate workers by checking `Claptrap.Registry` first.
+    * Keep running even if reconciliation raises or exits.
+
+  ## What reconciliation currently means
+
+  Reconciliation is additive in the current implementation. The coordinator
+  ensures workers are running for enabled sources, but it does not terminate
+  workers for disabled or removed sources.
+
+  ## Failure handling
+
+  Reconciliation runs inside `reconcile_workers_safely/1`, which rescues
+  exceptions and catches exits, logs the failure, and leaves the coordinator
+  alive for the next tick. This keeps transient catalog or supervision issues
+  from taking down the control process.
+
+  ## Testability
+
+  `list_sources_fun` can be injected through init options. Production uses
+  `&Claptrap.Catalog.list_sources/1`. Tests can inject failures to verify that
+  reconciliation errors are logged and isolated.
+  """
   use GenServer
   require Logger
 
