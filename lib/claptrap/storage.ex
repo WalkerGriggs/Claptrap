@@ -38,7 +38,8 @@ defmodule Claptrap.Storage do
 
     * Empty strings
     * Absolute paths (leading `/`)
-    * Path traversal sequences (`..`)
+    * Path separators (`/`) — this also prevents traversal
+      sequences like `../`
     * Hidden-file prefixes (leading `.`)
     * Whitespace or special characters
     * Null bytes

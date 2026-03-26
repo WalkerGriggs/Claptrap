@@ -12,9 +12,10 @@ defmodule Claptrap.Storage.Backends.Local do
 
   The adapter expects a single configuration key:
 
-    * `:root_dir` — absolute path to the directory where blobs
-      are stored. The directory is created automatically on
-      write if it does not exist.
+    * `:root_dir` — path to the directory where blobs are
+      stored. May be absolute or relative to the project root.
+      Parent directories are created automatically on write if
+      they do not exist.
 
   Example (in `config/config.exs`):
 
