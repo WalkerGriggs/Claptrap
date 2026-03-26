@@ -404,6 +404,28 @@ defmodule Claptrap.RSS.ParserTest do
       assert item.pub_date == nil
     end
 
+    test "ttl with trailing garbage is dropped" do
+      xml = minimal_feed("<ttl>60abc</ttl>")
+      assert {:ok, feed} = Parser.parse(xml)
+      assert feed.ttl == nil
+    end
+
+    test "skipHours hour with trailing garbage is dropped" do
+      xml = minimal_feed("<skipHours><hour>12x</hour><hour>8</hour></skipHours>")
+      assert {:ok, feed} = Parser.parse(xml)
+      assert feed.skip_hours == [8]
+    end
+
+    test "enclosure length with trailing garbage falls back to 0" do
+      xml =
+        minimal_feed(
+          "<item><title>Has enclosure</title><enclosure url=\"https://example.com/audio.mp3\" length=\"1000bytes\" type=\"audio/mpeg\"/></item>"
+        )
+
+      assert {:ok, feed} = Parser.parse(xml)
+      assert [%Item{enclosure: %Enclosure{length: 0}}] = feed.items
+    end
+
     test "duplicate title takes first occurrence" do
       xml =
         minimal_feed("""
@@ -549,6 +571,45 @@ defmodule Claptrap.RSS.ParserTest do
                 reason: :malformed_date,
                 message: "malformed date: not-a-date-first"
               }} = Parser.parse(xml, strict: true)
+    end
+
+    test "ttl with trailing garbage returns ParseError" do
+      xml = minimal_feed("<ttl>60abc</ttl>")
+      assert {:error, %ParseError{reason: :malformed_integer}} = Parser.parse(xml, strict: true)
+    end
+
+    test "skipHours hour with trailing garbage returns ParseError" do
+      xml = minimal_feed("<skipHours><hour>12x</hour></skipHours>")
+      assert {:error, %ParseError{reason: :malformed_integer}} = Parser.parse(xml, strict: true)
+    end
+
+    test "enclosure length with trailing garbage returns ParseError" do
+      xml =
+        minimal_feed(
+          "<item><title>Has enclosure</title><enclosure url=\"https://example.com/audio.mp3\" length=\"1000bytes\" type=\"audio/mpeg\"/></item>"
+        )
+
+      assert {:error, %ParseError{reason: :malformed_integer}} = Parser.parse(xml, strict: true)
+    end
+
+    test "valid integer fields parse in strict mode" do
+      xml =
+        minimal_feed("""
+          <ttl>60</ttl>
+          <cloud domain="rpc.example.com" port="80" path="/RPC2"
+                 registerProcedure="myCloud.rssPleaseNotify" protocol="xml-rpc"/>
+          <skipHours><hour>0</hour><hour>12</hour></skipHours>
+          <item>
+            <title>Item One</title>
+            <enclosure url="https://example.com/audio.mp3" length="1000" type="audio/mpeg"/>
+          </item>
+        """)
+
+      assert {:ok, feed} = Parser.parse(xml, strict: true)
+      assert feed.ttl == 60
+      assert feed.cloud.port == 80
+      assert feed.skip_hours == [0, 12]
+      assert [%Item{enclosure: %Enclosure{length: 1000}}] = feed.items
     end
 
     test "valid feed parses successfully in strict mode" do

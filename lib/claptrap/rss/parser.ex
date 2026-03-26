@@ -115,6 +115,7 @@ defmodule Claptrap.RSS.Parser do
 
     with :ok <- validate_required_scalars(scalars, strict),
          :ok <- validate_dates(dates, strict),
+         :ok <- validate_integer_fields(children, strict),
          {:ok, items} <- items_result do
       feed = %Feed{
         title: scalars[:title] || "",
@@ -261,11 +262,100 @@ defmodule Claptrap.RSS.Parser do
     end
   end
 
-  defp parse_integer(s) do
+  defp parse_integer(s) when is_binary(s) do
     case Integer.parse(String.trim(s)) do
-      {n, _} -> n
+      {n, ""} -> n
       :error -> nil
+      {_n, _rest} -> nil
     end
+  end
+
+  defp parse_integer(_), do: nil
+
+  defp validate_integer_fields(_children, false), do: :ok
+
+  defp validate_integer_fields(children, true) do
+    with :ok <- validate_ttl_integer(children),
+         :ok <- validate_cloud_port_integer(children),
+         :ok <- validate_skip_hours_integers(children),
+         :ok <- validate_item_enclosure_lengths(children) do
+      :ok
+    end
+  end
+
+  defp validate_ttl_integer(children) do
+    case find_first(children, "ttl") do
+      nil -> :ok
+      el -> validate_integer_value(text_content(el), "ttl")
+    end
+  end
+
+  defp validate_cloud_port_integer(children) do
+    case find_first(children, "cloud") do
+      nil ->
+        :ok
+
+      cloud ->
+        case get_attribute(cloud, "port") do
+          nil -> :ok
+          raw -> validate_integer_value(raw, "cloud.port")
+        end
+    end
+  end
+
+  defp validate_skip_hours_integers(children) do
+    case find_first(children, "skipHours") do
+      nil ->
+        :ok
+
+      skip_hours ->
+        skip_hours
+        |> child_elements()
+        |> Enum.filter(&(element_name(&1) == "hour"))
+        |> Enum.reduce_while(:ok, fn hour, _acc ->
+          case validate_integer_value(text_content(hour), "skipHours.hour") do
+            :ok -> {:cont, :ok}
+            error -> {:halt, error}
+          end
+        end)
+    end
+  end
+
+  defp validate_item_enclosure_lengths(children) do
+    children
+    |> Enum.filter(&(element_name(&1) == "item"))
+    |> Enum.reduce_while(:ok, fn item, _acc ->
+      case find_first(child_elements(item), "enclosure") do
+        nil ->
+          {:cont, :ok}
+
+        enclosure ->
+          case get_attribute(enclosure, "length") do
+            nil ->
+              {:cont, :ok}
+
+            raw ->
+              case validate_integer_value(raw, "item.enclosure.length") do
+                :ok -> {:cont, :ok}
+                error -> {:halt, error}
+              end
+          end
+      end
+    end)
+  end
+
+  defp validate_integer_value(nil, field), do: malformed_integer_error(field, nil)
+
+  defp validate_integer_value(raw, field) when is_binary(raw) do
+    case parse_integer(raw) do
+      nil -> malformed_integer_error(field, raw)
+      _integer -> :ok
+    end
+  end
+
+  defp malformed_integer_error(field, raw) do
+    displayed = if is_binary(raw) and raw != "", do: raw, else: "(empty)"
+    {:error, %ParseError{reason: :malformed_integer, message: "malformed integer for #{field}: #{displayed}"}}
   end
 
   defp extract_image(children) do
