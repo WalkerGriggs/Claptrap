@@ -755,6 +755,15 @@ defmodule Claptrap.RSS.ValidatorTest do
         assert Enum.any?(errors, &(&1.path == [:image, :height] and &1.rule == :range))
       end
     end
+
+    property "link with any valid URI scheme passes" do
+      check all(
+              feed <- valid_feed_gen(),
+              uri <- valid_scheme_uri_gen()
+            ) do
+        assert :ok = Validator.validate(%{feed | link: uri})
+      end
+    end
   end
 
   # -- StreamData generators ---------------------------------------------
@@ -771,6 +780,20 @@ defmodule Claptrap.RSS.ValidatorTest do
   defp non_empty_string_gen do
     gen all(s <- string(:alphanumeric, min_length: 1, max_length: 50)) do
       s
+    end
+  end
+
+  defp valid_scheme_uri_gen do
+    scheme_start = StreamData.member_of(Enum.to_list(?a..?z))
+    scheme_rest = string(Enum.flat_map([?a..?z, ?0..?9, [?+, ?-, ?.]], &Enum.to_list/1), max_length: 8)
+    body = string(:alphanumeric, min_length: 1, max_length: 30)
+
+    gen all(
+          first <- scheme_start,
+          rest <- scheme_rest,
+          b <- body
+        ) do
+      <<first>> <> rest <> ":" <> b
     end
   end
 end
