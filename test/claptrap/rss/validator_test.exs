@@ -146,6 +146,20 @@ defmodule Claptrap.RSS.ValidatorTest do
       assert has_error?(errors, rule: :format, path: [:link])
     end
 
+    test "link with scheme but empty opaque part returns :format error" do
+      feed = %{valid_feed() | link: "mailto:"}
+      errors = errors_for(feed)
+
+      assert has_error?(errors, rule: :format, path: [:link])
+    end
+
+    test "link starting with colon returns :format error" do
+      feed = %{valid_feed() | link: ":not-a-scheme"}
+      errors = errors_for(feed)
+
+      assert has_error?(errors, rule: :format, path: [:link])
+    end
+
     test "link with valid http scheme passes" do
       assert :ok = Validator.validate(%{valid_feed() | link: "http://example.com"})
     end
@@ -156,6 +170,30 @@ defmodule Claptrap.RSS.ValidatorTest do
 
     test "link with ftp scheme passes" do
       assert :ok = Validator.validate(%{valid_feed() | link: "ftp://files.example.com"})
+    end
+
+    test "link with mailto scheme passes" do
+      assert :ok =
+               Validator.validate(%{
+                 valid_feed()
+                 | link: "mailto:foo@example.com"
+               })
+    end
+
+    test "link with opaque news scheme passes" do
+      assert :ok =
+               Validator.validate(%{
+                 valid_feed()
+                 | link: "news:comp.lang.elixir"
+               })
+    end
+
+    test "link with news hierarchical form passes" do
+      assert :ok =
+               Validator.validate(%{
+                 valid_feed()
+                 | link: "news://news.example.com/group"
+               })
     end
   end
 
@@ -238,6 +276,26 @@ defmodule Claptrap.RSS.ValidatorTest do
       assert has_error?(errors, rule: :format, path: [:items, 0, :link])
     end
 
+    test "item with mailto link passes" do
+      feed =
+        add_item(valid_feed(), %Item{
+          title: "T",
+          link: "mailto:author@example.com"
+        })
+
+      assert :ok = Validator.validate(feed)
+    end
+
+    test "item with news link passes" do
+      feed =
+        add_item(valid_feed(), %Item{
+          title: "T",
+          link: "news:comp.example"
+        })
+
+      assert :ok = Validator.validate(feed)
+    end
+
     test "item without link passes" do
       feed = add_item(valid_feed(), %Item{title: "T"})
       assert :ok = Validator.validate(feed)
@@ -282,6 +340,23 @@ defmodule Claptrap.RSS.ValidatorTest do
 
       assert has_error?(errors, rule: :format, path: [:items, 0, :enclosure, :url])
     end
+
+    test "enclosure with mailto url passes" do
+      enc = %Enclosure{
+        url: "mailto:podcast@example.com",
+        length: 0,
+        type: "text/html"
+      }
+
+      feed = add_item(valid_feed(), %Item{title: "T", enclosure: enc})
+      assert :ok = Validator.validate(feed)
+    end
+
+    test "enclosure with news url passes" do
+      enc = %Enclosure{url: "news:announce.example", length: 0, type: "message/rfc822"}
+      feed = add_item(valid_feed(), %Item{title: "T", enclosure: enc})
+      assert :ok = Validator.validate(feed)
+    end
   end
 
   describe "guid validation" do
@@ -305,6 +380,26 @@ defmodule Claptrap.RSS.ValidatorTest do
       errors = errors_for(feed)
 
       assert has_error?(errors, rule: :format, path: [:items, 0, :guid, :value])
+    end
+
+    test "guid with is_perma_link=true and mailto URI passes" do
+      item = %Item{
+        title: "T",
+        guid: %Guid{value: "mailto:item@example.com", is_perma_link: true}
+      }
+
+      feed = add_item(valid_feed(), item)
+      assert :ok = Validator.validate(feed)
+    end
+
+    test "guid with is_perma_link=true and news URI passes" do
+      item = %Item{
+        title: "T",
+        guid: %Guid{value: "news:guid.example", is_perma_link: true}
+      }
+
+      feed = add_item(valid_feed(), item)
+      assert :ok = Validator.validate(feed)
     end
 
     test "guid with is_perma_link=false and non-URL passes" do
