@@ -426,6 +426,17 @@ defmodule Claptrap.RSS.ParserTest do
       assert [%Item{enclosure: %Enclosure{length: 0}}] = feed.items
     end
 
+    test "cloud port with trailing garbage falls back to 0" do
+      xml =
+        minimal_feed("""
+          <cloud domain="rpc.example.com" port="80abc" path="/RPC2"
+                 registerProcedure="myCloud.rssPleaseNotify" protocol="xml-rpc"/>
+        """)
+
+      assert {:ok, feed} = Parser.parse(xml)
+      assert %Cloud{port: 0} = feed.cloud
+    end
+
     test "duplicate title takes first occurrence" do
       xml =
         minimal_feed("""
@@ -588,6 +599,16 @@ defmodule Claptrap.RSS.ParserTest do
         minimal_feed(
           "<item><title>Has enclosure</title><enclosure url=\"https://example.com/audio.mp3\" length=\"1000bytes\" type=\"audio/mpeg\"/></item>"
         )
+
+      assert {:error, %ParseError{reason: :malformed_integer}} = Parser.parse(xml, strict: true)
+    end
+
+    test "cloud port with trailing garbage returns ParseError" do
+      xml =
+        minimal_feed("""
+          <cloud domain="rpc.example.com" port="80abc" path="/RPC2"
+                 registerProcedure="myCloud.rssPleaseNotify" protocol="xml-rpc"/>
+        """)
 
       assert {:error, %ParseError{reason: :malformed_integer}} = Parser.parse(xml, strict: true)
     end
