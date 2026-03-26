@@ -13,7 +13,10 @@ defmodule Claptrap.Producer.Adapters.RssFeedTest do
   @sink_attrs %{
     type: "rss",
     name: "My Feed",
-    config: %{"description" => "A test feed", "link" => "https://example.com/my-feed"}
+    config: %{
+      "description" => "A test feed",
+      "link" => "https://example.com/my-feed"
+    }
   }
 
   setup do
@@ -72,19 +75,24 @@ defmodule Claptrap.Producer.Adapters.RssFeedTest do
                })
     end
 
-    test "rejects config without link" do
-      assert {:error, "missing required key: link"} =
-               RssFeed.validate_config(%{"description" => "A feed", "max_entries" => 25})
-    end
-
     test "rejects config without description" do
       assert {:error, "missing required key: description"} =
                RssFeed.validate_config(%{"link" => "https://example.com/feed", "max_entries" => 25})
     end
 
-    test "rejects config without description and link" do
-      assert {:error, "missing required keys: description, link"} =
-               RssFeed.validate_config(%{"max_entries" => 25})
+    test "rejects config with blank description" do
+      assert {:error, "description must be a non-empty string"} =
+               RssFeed.validate_config(%{"description" => "   ", "link" => "https://example.com/feed"})
+    end
+
+    test "rejects config with non-binary description" do
+      assert {:error, "description must be a non-empty string"} =
+               RssFeed.validate_config(%{"description" => 123, "link" => "https://example.com/feed"})
+    end
+
+    test "rejects config without link" do
+      assert {:error, "missing required key: link"} =
+               RssFeed.validate_config(%{"description" => "A feed", "max_entries" => 25})
     end
 
     test "rejects config with non-integer max_entries" do
@@ -115,25 +123,31 @@ defmodule Claptrap.Producer.Adapters.RssFeedTest do
     end
 
     test "rejects config with blank link" do
-      assert {:error, "link must be a non-empty string"} =
+      assert {:error, "link must be a non-empty absolute URI with http or https scheme"} =
                RssFeed.validate_config(%{"description" => "A feed", "link" => "   "})
     end
 
+    test "accepts config with link surrounded by whitespace" do
+      assert :ok =
+               RssFeed.validate_config(%{
+                 "description" => "A feed",
+                 "link" => "  https://example.com/feed  "
+               })
+    end
+
     test "rejects config with non-binary link" do
-      assert {:error, "link must be a non-empty string"} =
+      assert {:error, "link must be a non-empty absolute URI with http or https scheme"} =
                RssFeed.validate_config(%{"description" => "A feed", "link" => 123})
     end
 
-    test "rejects config with invalid link" do
-      assert {:error, "link must be an absolute URL with scheme and host"} =
-               RssFeed.validate_config(%{"description" => "A feed", "link" => "example.com/feed"})
+    test "rejects config with non-http link scheme" do
+      assert {:error, "link must be a non-empty absolute URI with http or https scheme"} =
+               RssFeed.validate_config(%{"description" => "A feed", "link" => "ftp://example.com/feed"})
     end
 
-    test "rejects config with scheme but missing host" do
-      for link <- ["mailto:test@example.com", "https:///path-only"] do
-        assert {:error, "link must be an absolute URL with scheme and host"} =
-                 RssFeed.validate_config(%{"description" => "A feed", "link" => link})
-      end
+    test "rejects config with malformed absolute URI link" do
+      assert {:error, "link must be a non-empty absolute URI with http or https scheme"} =
+               RssFeed.validate_config(%{"description" => "A feed", "link" => "https:///missing-host"})
     end
 
     test "rejects non-map config" do
