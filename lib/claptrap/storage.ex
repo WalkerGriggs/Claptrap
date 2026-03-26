@@ -2,7 +2,7 @@ defmodule Claptrap.Storage do
   @moduledoc false
 
   @key_pattern ~r/\A[a-zA-Z0-9][a-zA-Z0-9._-]*\z/
-  @prefix_pattern ~r/\A[a-zA-Z0-9._-]*\z/
+  @prefix_pattern ~r/\A[a-zA-Z0-9][a-zA-Z0-9._-]*\z/
 
   def write(key, data) do
     validate_key!(key)

@@ -72,6 +72,32 @@ defmodule Claptrap.StorageTest do
     end
   end
 
+  describe "prefix validation rejects" do
+    test "dot prefix" do
+      assert_raise ArgumentError, fn -> Storage.list(".") end
+    end
+
+    test "double dot prefix" do
+      assert_raise ArgumentError, fn -> Storage.list("..") end
+    end
+
+    test "dot-leading prefix" do
+      assert_raise ArgumentError, fn -> Storage.list(".hidden") end
+    end
+  end
+
+  describe "prefix validation accepts" do
+    test "empty string lists all" do
+      :ok = Storage.write("test-file", ["data"])
+      assert {:ok, ["test-file"]} = Storage.list("")
+    end
+
+    test "alphanumeric prefix" do
+      :ok = Storage.write("abc123", ["data"])
+      assert {:ok, ["abc123"]} = Storage.list("abc")
+    end
+  end
+
   describe "key validation accepts" do
     test "valid-key.txt" do
       :ok = Storage.write("valid-key.txt", ["data"])
