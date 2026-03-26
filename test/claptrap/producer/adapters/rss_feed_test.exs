@@ -218,6 +218,7 @@ defmodule Claptrap.Producer.Adapters.RssFeedTest do
       assert xml =~ "<link>https://example.com/1</link>"
       assert xml =~ "<description>A post about Elixir</description>"
       assert xml =~ "<author>Author One</author>"
+      assert xml =~ "<pubDate>Thu, 15 Jan 2026 10:00:00 +0000</pubDate>"
       assert xml =~ "<guid isPermaLink=\"false\">#{entry.id}</guid>"
     end
 
@@ -327,7 +328,7 @@ defmodule Claptrap.Producer.Adapters.RssFeedTest do
       assert new_pos < old_pos
     end
 
-    test "handles entries with nil optional fields" do
+    test "omits <link> when entry url is nil" do
       {:ok, source} = Catalog.create_source(@source_attrs)
       {:ok, sink} = Catalog.create_sink(@sink_attrs)
       {:ok, _sub} = Catalog.create_subscription(%{sink_id: sink.id, tags: ["test"]})
@@ -335,18 +336,154 @@ defmodule Claptrap.Producer.Adapters.RssFeedTest do
       {:ok, _} =
         Catalog.create_entry(%{
           source_id: source.id,
-          external_id: "minimal",
-          title: "Minimal",
+          external_id: "no-link",
+          title: "No Link",
           status: "unread",
           tags: ["test"]
         })
 
       assert :ok = RssFeed.materialize(sink, [])
       {:ok, xml, _} = RssFeed.get_feed(sink.id)
-      assert xml =~ "<title>Minimal</title>"
-      assert xml =~ "<link></link>"
-      assert xml =~ "<description></description>"
-      assert xml =~ "<author></author>"
+      assert xml =~ "<title>No Link</title>"
+      assert [] == xpath(xml, "/rss/channel/item/link")
+    end
+
+    test "omits <link> when entry url is blank" do
+      {:ok, source} = Catalog.create_source(@source_attrs)
+      {:ok, sink} = Catalog.create_sink(@sink_attrs)
+      {:ok, _sub} = Catalog.create_subscription(%{sink_id: sink.id, tags: ["test"]})
+
+      {:ok, _} =
+        Catalog.create_entry(%{
+          source_id: source.id,
+          external_id: "blank-link",
+          title: "Blank Link",
+          url: "   ",
+          status: "unread",
+          tags: ["test"]
+        })
+
+      assert :ok = RssFeed.materialize(sink, [])
+      {:ok, xml, _} = RssFeed.get_feed(sink.id)
+      assert xml =~ "<title>Blank Link</title>"
+      assert [] == xpath(xml, "/rss/channel/item/link")
+    end
+
+    test "omits <link> when entry url is invalid and omits <author> when blank" do
+      {:ok, source} = Catalog.create_source(@source_attrs)
+      {:ok, sink} = Catalog.create_sink(@sink_attrs)
+      {:ok, _sub} = Catalog.create_subscription(%{sink_id: sink.id, tags: ["test"]})
+
+      {:ok, _} =
+        Catalog.create_entry(%{
+          source_id: source.id,
+          external_id: "invalid-link-and-blank-author",
+          title: "Invalid Link and Blank Author",
+          url: "example.com/missing-scheme",
+          author: "   ",
+          status: "unread",
+          tags: ["test"]
+        })
+
+      assert :ok = RssFeed.materialize(sink, [])
+      {:ok, xml, _} = RssFeed.get_feed(sink.id)
+      assert xml =~ "<title>Invalid Link and Blank Author</title>"
+      assert [] == xpath(xml, "/rss/channel/item/link")
+      refute xml =~ "<author>"
+    end
+
+    test "omits <author> when entry author is nil" do
+      {:ok, source} = Catalog.create_source(@source_attrs)
+      {:ok, sink} = Catalog.create_sink(@sink_attrs)
+      {:ok, _sub} = Catalog.create_subscription(%{sink_id: sink.id, tags: ["test"]})
+
+      {:ok, _} =
+        Catalog.create_entry(%{
+          source_id: source.id,
+          external_id: "no-author",
+          title: "No Author",
+          url: "https://example.com/no-author",
+          status: "unread",
+          tags: ["test"]
+        })
+
+      assert :ok = RssFeed.materialize(sink, [])
+      {:ok, xml, _} = RssFeed.get_feed(sink.id)
+      assert xml =~ "<title>No Author</title>"
+      assert xml =~ "<link>https://example.com/no-author</link>"
+      refute xml =~ "<author>"
+    end
+
+    test "omits <author> when entry author is blank" do
+      {:ok, source} = Catalog.create_source(@source_attrs)
+      {:ok, sink} = Catalog.create_sink(@sink_attrs)
+      {:ok, _sub} = Catalog.create_subscription(%{sink_id: sink.id, tags: ["test"]})
+
+      {:ok, _} =
+        Catalog.create_entry(%{
+          source_id: source.id,
+          external_id: "blank-author",
+          title: "Blank Author",
+          url: "https://example.com/blank-author",
+          author: "",
+          status: "unread",
+          tags: ["test"]
+        })
+
+      assert :ok = RssFeed.materialize(sink, [])
+      {:ok, xml, _} = RssFeed.get_feed(sink.id)
+      assert xml =~ "<title>Blank Author</title>"
+      assert xml =~ "<link>https://example.com/blank-author</link>"
+      refute xml =~ "<author>"
+    end
+
+    test "omits <pubDate> when entry published_at is nil" do
+      {:ok, source} = Catalog.create_source(@source_attrs)
+      {:ok, sink} = Catalog.create_sink(@sink_attrs)
+      {:ok, _sub} = Catalog.create_subscription(%{sink_id: sink.id, tags: ["test"]})
+
+      {:ok, _} =
+        Catalog.create_entry(%{
+          source_id: source.id,
+          external_id: "no-pubdate",
+          title: "No PubDate",
+          url: "https://example.com/no-pubdate",
+          author: "No Date Author",
+          status: "unread",
+          tags: ["test"]
+        })
+
+      assert :ok = RssFeed.materialize(sink, [])
+      {:ok, xml, _} = RssFeed.get_feed(sink.id)
+      assert xml =~ "<title>No PubDate</title>"
+      assert xml =~ "<author>No Date Author</author>"
+      refute xml =~ "<pubDate>"
+    end
+
+    test "includes populated optional fields" do
+      {:ok, source} = Catalog.create_source(@source_attrs)
+      {:ok, sink} = Catalog.create_sink(@sink_attrs)
+      {:ok, _sub} = Catalog.create_subscription(%{sink_id: sink.id, tags: ["test"]})
+
+      {:ok, _entry} =
+        Catalog.create_entry(%{
+          source_id: source.id,
+          external_id: "with-optionals",
+          title: "With Optionals",
+          url: "https://example.com/with-optionals",
+          summary: "Summary",
+          author: "Author Present",
+          published_at: ~U[2026-03-01 08:15:30.000000Z],
+          status: "unread",
+          tags: ["test"]
+        })
+
+      assert :ok = RssFeed.materialize(sink, [])
+      {:ok, xml, _} = RssFeed.get_feed(sink.id)
+      assert xml =~ "<title>With Optionals</title>"
+      assert xml =~ "<link>https://example.com/with-optionals</link>"
+      assert xml =~ "<author>Author Present</author>"
+      assert xml =~ "<pubDate>Sun, 01 Mar 2026 08:15:30 +0000</pubDate>"
     end
 
     test "respects max_entries config" do
