@@ -38,8 +38,8 @@ In practice, the loop should look like:
 
 An agent working in this repository should assume:
 
-- Elixir and Erlang are installed.
-- PostgreSQL may be required for integration paths involving Ecto.
+- Elixir and Erlang are installed, matching the versions in `.tool-versions` (currently Elixir 1.19.5-otp-28, Erlang 28.4.1). In Cursor Cloud VMs these are managed via [mise](https://mise.jdx.dev/) which reads `.tool-versions` automatically.
+- PostgreSQL 16 is required. It runs locally with user `postgres` / password `postgres` on port 5432. In Cloud VMs it does not auto-start; run `sudo pg_ctlcluster 16 main start` before any database commands.
 - The repository root is the working directory for all Mix commands.
 - Commands must be non-interactive.
 - The repository should expose a small number of canonical commands instead of expecting the agent to improvise.
@@ -55,11 +55,17 @@ mix deps.get
 mix compile
 ```
 
-If the project uses Ecto and the database is required:
+The project uses Ecto, so the database must be running before setup:
 
 ```bash
 mix ecto.create
 mix ecto.migrate
+```
+
+Or use the combined alias (fetches deps, creates DB, migrates):
+
+```bash
+mix setup
 ```
 
 For a clean rebuild during debugging:
@@ -113,6 +119,18 @@ Run the full suite:
 mix test
 ```
 
+The test database must be set up separately from dev before running tests:
+
+```bash
+MIX_ENV=test mix ecto.setup
+```
+
+By default, tests exclude the `:integration` and `:e2e` tags. To include them:
+
+```bash
+mix test --include integration --include e2e
+```
+
 If the change touches database-backed code, ensure the database exists and migrations are current before running tests.
 
 ### Focused development commands
@@ -131,14 +149,14 @@ mix clean && mix compile
 
 ### Quality gates
 
-If these tools are present in the project, agents should use them consistently:
+Use strict mode for Credo in this project:
 
 ```bash
-mix credo
+mix credo --strict
 mix dialyzer
 ```
 
-If a project-level alias such as `mix check` exists, prefer it for final verification because it captures the repository's intended quality bar:
+The project defines `mix check` as the full pre-merge gate (format, compile with warnings-as-errors, Credo strict, OpenAPI spec check, Dialyzer, and tests). Prefer it for final verification:
 
 ```bash
 mix check
@@ -183,6 +201,18 @@ mix test test/path/to/schema_or_context_test.exs
 
 Use targeted endpoint tests first, then broader integration tests.
 
+To run the app locally for manual verification:
+
+```bash
+mix run --no-halt      # starts server on http://localhost:4000
+```
+
+The API requires a Bearer token for all endpoints except `/health` and `/ready`. In dev mode the token is `dev-api-key`:
+
+```bash
+curl -H "Authorization: Bearer dev-api-key" http://localhost:4000/api/v1/sources
+```
+
 ### When editing shared contracts or behaviours
 
 Run the full suite or at least every directly affected subsystem suite. Shared contracts create high blast radius.
@@ -222,6 +252,15 @@ If validation fails:
 5. Only then resume the broader loop.
 
 Agents should not claim success based on compilation alone when behavior changed. Likewise, they should not run the entire suite first when a single targeted test would have exposed the problem faster.
+
+### Known harmless warnings
+
+- The `inotifywait` backend warning (`backend port not found: :inotifywait`) during tests comes from the `fs` dependency and does not affect results. It can be ignored.
+
+### Setup notes
+
+- `mix setup` also sets the git hooks path to `priv/hooks`. This is safe to run but not required for Cloud agents — the pre-commit hook runs format, Credo, OpenAPI check, and Dialyzer.
+- The test database is independent from the dev database. Always run `MIX_ENV=test mix ecto.setup` before running `mix test` for the first time in a new environment.
 
 ## What good agent readiness looks like in this repository
 
