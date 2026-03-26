@@ -848,11 +848,12 @@ defmodule Claptrap.RSS.ParserTest do
       end
     end
 
-    property "ttl rejects any non-empty suffix after integer" do
+    property "ttl rejects any non-empty non-digit suffix after integer" do
       safe_suffix =
         StreamData.string(:ascii, min_length: 1, max_length: 8)
         |> StreamData.map(&String.replace(&1, ~r/[<>&"']/, ""))
         |> StreamData.filter(&(String.trim(&1) != ""))
+        |> StreamData.filter(&String.match?(&1, ~r/\D/))
 
       check all(
               n <- integer(0..65_535),
