@@ -3,7 +3,7 @@ defmodule Claptrap.Catalog do
 
   import Ecto.Query
 
-  alias Claptrap.Catalog.{Entry, Sink, Source, Subscription}
+  alias Claptrap.Catalog.{Artifact, Entry, Sink, Source, Subscription}
   alias Claptrap.Repo
 
   # Sources
@@ -125,6 +125,28 @@ defmodule Claptrap.Catalog do
     |> Repo.update()
   end
 
+  # Artifacts
+
+  def create_artifact(attrs) do
+    %Artifact{}
+    |> Artifact.changeset(attrs)
+    |> Repo.insert(
+      on_conflict: {:replace, [:content, :content_type, :byte_size, :extractor, :metadata, :updated_at]},
+      conflict_target: [:entry_id, :format],
+      returning: true
+    )
+  end
+
+  def list_artifacts(opts \\ []) do
+    Artifact
+    |> maybe_filter_by(:entry_id, opts[:entry_id])
+    |> Repo.all()
+  end
+
+  def get_artifact!(id), do: Repo.get!(Artifact, id)
+
+  def delete_artifact(%Artifact{} = artifact), do: Repo.delete(artifact)
+
   # Private helpers
 
   @pagination_keys [:limit, :after, :before]
@@ -157,6 +179,7 @@ defmodule Claptrap.Catalog do
   defp maybe_filter_by(query, :status, value), do: where(query, [q], q.status == ^value)
   defp maybe_filter_by(query, :source_id, value), do: where(query, [q], q.source_id == ^value)
   defp maybe_filter_by(query, :sink_id, value), do: where(query, [q], q.sink_id == ^value)
+  defp maybe_filter_by(query, :entry_id, value), do: where(query, [q], q.entry_id == ^value)
 
   defp maybe_limit(query, nil), do: query
   defp maybe_limit(query, value), do: limit(query, ^value)

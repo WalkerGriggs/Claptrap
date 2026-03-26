@@ -18,6 +18,7 @@ defmodule Claptrap.Catalog.Entry do
     field :metadata, :map
     field :tags, {:array, :string}, default: []
 
+    has_many :artifacts, Claptrap.Catalog.Artifact
     belongs_to :source, Claptrap.Catalog.Source
 
     timestamps(type: :utc_datetime_usec)
