@@ -10,7 +10,10 @@ defmodule Claptrap.E2E.RoutingTest do
   @sink_params %{
     "type" => "rss",
     "name" => "Routing Test Sink",
-    "config" => %{"description" => "Test feed"}
+    "config" => %{
+      "description" => "Test feed",
+      "link" => "https://example.com/routing-test-feed"
+    }
   }
 
   defp create_source(ctx, opts \\ []) do

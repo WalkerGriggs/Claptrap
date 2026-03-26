@@ -42,6 +42,14 @@ process itself, so it survives worker and router crashes.
   `Claptrap.Producer.Adapter` behaviour. Currently only
   `rss_feed` (generates RSS 2.0 XML, stores in ETS).
 
+### RSS sink config requirements
+
+For sinks with `type: "rss"`, the adapter requires:
+
+- `config["description"]` — feed description text
+- `config["link"]` — non-empty absolute URL (must include scheme and host)
+- `config["max_entries"]` — optional positive integer limit
+
 ## Key concepts
 
 The router performs tag-based matching to connect entries to

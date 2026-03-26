@@ -27,8 +27,9 @@ defmodule Claptrap.Producer.Adapters.RssFeed do
 
   - Adapter mode is always `:pull`.
   - `push/2` is not supported and returns `{:error, :not_supported}`.
-  - `validate_config/1` requires a `"description"` key and validates
-    `"max_entries"` when provided.
+  - `validate_config/1` requires `"description"` and `"link"` keys and
+    validates that `"link"` is a non-empty absolute URL.
+  - `validate_config/1` validates `"max_entries"` when provided.
   - XML escaping is applied to text fields to keep output well-formed.
   """
 
@@ -56,14 +57,21 @@ defmodule Claptrap.Producer.Adapters.RssFeed do
   end
 
   @impl true
-  def validate_config(%{"description" => _, "max_entries" => n})
+  def validate_config(%{"description" => _, "link" => _, "max_entries" => n})
       when not is_integer(n) or n < 1,
       do: {:error, "max_entries must be a positive integer"}
 
-  def validate_config(%{"description" => _}), do: :ok
+  def validate_config(%{"description" => _, "link" => link}) do
+    validate_link(link)
+  end
 
-  def validate_config(config) when is_map(config),
-    do: {:error, "missing required key: description"}
+  def validate_config(%{"description" => _}), do: {:error, "missing required key: link"}
+
+  def validate_config(%{"link" => _}), do: {:error, "missing required key: description"}
+
+  def validate_config(config) when is_map(config) do
+    {:error, "missing required keys: description, link"}
+  end
 
   def validate_config(_), do: {:error, "config must be a map"}
 
@@ -82,6 +90,7 @@ defmodule Claptrap.Producer.Adapters.RssFeed do
     <rss version="2.0">
       <channel>
         <title>#{escape(sink.name)}</title>
+        <link>#{escape(channel_link(sink))}</link>
         <description>#{escape(sink.config["description"] || "")}</description>
         <lastBuildDate>#{rfc2822(DateTime.utc_now())}</lastBuildDate>
     #{items}
@@ -89,6 +98,9 @@ defmodule Claptrap.Producer.Adapters.RssFeed do
     </rss>
     """
   end
+
+  defp channel_link(%Sink{config: %{"link" => link}}) when is_binary(link), do: String.trim(link)
+  defp channel_link(%Sink{}), do: ""
 
   defp build_item(%Entry{} = entry) do
     """
@@ -116,6 +128,34 @@ defmodule Claptrap.Producer.Adapters.RssFeed do
 
   @day_names ~w(Mon Tue Wed Thu Fri Sat Sun)
   @month_names ~w(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec)
+
+  defp validate_link(link) when is_binary(link) do
+    trimmed = String.trim(link)
+
+    cond do
+      trimmed == "" ->
+        {:error, "link must be a non-empty string"}
+
+      valid_absolute_url?(trimmed) ->
+        :ok
+
+      true ->
+        {:error, "link must be an absolute URL with scheme and host"}
+    end
+  end
+
+  defp validate_link(_), do: {:error, "link must be a non-empty string"}
+
+  defp valid_absolute_url?(value) do
+    case URI.parse(value) do
+      %URI{scheme: scheme, host: host}
+      when is_binary(scheme) and scheme != "" and is_binary(host) and host != "" ->
+        true
+
+      _ ->
+        false
+    end
+  end
 
   defp rfc2822(nil), do: ""
 

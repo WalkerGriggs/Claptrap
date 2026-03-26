@@ -12,7 +12,7 @@ defmodule Claptrap.Producer.Adapters.RssFeedTest do
   @sink_attrs %{
     type: "rss",
     name: "My Feed",
-    config: %{"description" => "A test feed"}
+    config: %{"description" => "A test feed", "link" => "https://example.com/my-feed"}
   }
 
   setup do
@@ -54,31 +54,73 @@ defmodule Claptrap.Producer.Adapters.RssFeedTest do
   end
 
   describe "validate_config/1" do
-    test "accepts valid config with description" do
-      assert :ok = RssFeed.validate_config(%{"description" => "A feed"})
+    test "accepts valid config with description and link" do
+      assert :ok =
+               RssFeed.validate_config(%{
+                 "description" => "A feed",
+                 "link" => "https://example.com/feed"
+               })
     end
 
-    test "accepts config with description and max_entries" do
-      assert :ok = RssFeed.validate_config(%{"description" => "A feed", "max_entries" => 25})
+    test "accepts config with description, link, and max_entries" do
+      assert :ok =
+               RssFeed.validate_config(%{
+                 "description" => "A feed",
+                 "link" => "https://example.com/feed",
+                 "max_entries" => 25
+               })
+    end
+
+    test "rejects config without link" do
+      assert {:error, "missing required key: link"} =
+               RssFeed.validate_config(%{"description" => "A feed", "max_entries" => 25})
     end
 
     test "rejects config without description" do
-      assert {:error, "missing required key: description"} = RssFeed.validate_config(%{"max_entries" => 25})
+      assert {:error, "missing required key: description"} =
+               RssFeed.validate_config(%{"link" => "https://example.com/feed", "max_entries" => 25})
+    end
+
+    test "rejects config without description and link" do
+      assert {:error, "missing required keys: description, link"} =
+               RssFeed.validate_config(%{"max_entries" => 25})
     end
 
     test "rejects config with non-integer max_entries" do
       assert {:error, "max_entries must be a positive integer"} =
-               RssFeed.validate_config(%{"description" => "A feed", "max_entries" => "fifty"})
+               RssFeed.validate_config(%{
+                 "description" => "A feed",
+                 "link" => "https://example.com/feed",
+                 "max_entries" => "fifty"
+               })
     end
 
     test "rejects config with zero max_entries" do
       assert {:error, "max_entries must be a positive integer"} =
-               RssFeed.validate_config(%{"description" => "A feed", "max_entries" => 0})
+               RssFeed.validate_config(%{
+                 "description" => "A feed",
+                 "link" => "https://example.com/feed",
+                 "max_entries" => 0
+               })
     end
 
     test "rejects config with negative max_entries" do
       assert {:error, "max_entries must be a positive integer"} =
-               RssFeed.validate_config(%{"description" => "A feed", "max_entries" => -5})
+               RssFeed.validate_config(%{
+                 "description" => "A feed",
+                 "link" => "https://example.com/feed",
+                 "max_entries" => -5
+               })
+    end
+
+    test "rejects config with blank link" do
+      assert {:error, "link must be a non-empty string"} =
+               RssFeed.validate_config(%{"description" => "A feed", "link" => "   "})
+    end
+
+    test "rejects config with invalid link" do
+      assert {:error, "link must be an absolute URL with scheme and host"} =
+               RssFeed.validate_config(%{"description" => "A feed", "link" => "example.com/feed"})
     end
 
     test "rejects non-map config" do
@@ -110,12 +152,25 @@ defmodule Claptrap.Producer.Adapters.RssFeedTest do
       assert {:ok, xml, _updated_at} = RssFeed.get_feed(sink.id)
       assert xml =~ ~r/<rss version="2.0">/
       assert xml =~ "<title>My Feed</title>"
+      assert xml =~ "<link>https://example.com/my-feed</link>"
       assert xml =~ "<description>A test feed</description>"
       assert xml =~ "<title>Hello Elixir</title>"
       assert xml =~ "<link>https://example.com/1</link>"
       assert xml =~ "<description>A post about Elixir</description>"
       assert xml =~ "<author>Author One</author>"
       assert xml =~ "<guid isPermaLink=\"false\">#{entry.id}</guid>"
+    end
+
+    test "emits channel link exactly once" do
+      {:ok, sink} = Catalog.create_sink(@sink_attrs)
+      {:ok, _sub} = Catalog.create_subscription(%{sink_id: sink.id, tags: ["none"]})
+
+      assert :ok = RssFeed.materialize(sink, [])
+      {:ok, xml, _updated_at} = RssFeed.get_feed(sink.id)
+
+      channel_link = "<link>https://example.com/my-feed</link>"
+      occurrences = xml |> String.split(channel_link) |> length() |> Kernel.-(1)
+      assert occurrences == 1
     end
 
     test "XML contains entries in correct order (newest first)" do
@@ -180,7 +235,11 @@ defmodule Claptrap.Producer.Adapters.RssFeedTest do
         Catalog.create_sink(%{
           type: "rss",
           name: "Limited Feed",
-          config: %{"description" => "Limited", "max_entries" => 2}
+          config: %{
+            "description" => "Limited",
+            "link" => "https://example.com/limited-feed",
+            "max_entries" => 2
+          }
         })
 
       {:ok, _sub} = Catalog.create_subscription(%{sink_id: sink.id, tags: ["elixir"]})

@@ -9,7 +9,11 @@ defmodule Claptrap.Integration.CatalogProducerTest do
   alias Claptrap.Registry, as: Reg
 
   @source_attrs %{type: "rss", name: "Test Source", config: %{"url" => "https://example.com/feed"}}
-  @sink_attrs %{type: "rss", name: "Test Sink", config: %{"description" => "Test feed"}}
+  @sink_attrs %{
+    type: "rss",
+    name: "Test Sink",
+    config: %{"description" => "Test feed", "link" => "https://example.com/test-sink"}
+  }
 
   defp create_source!(attrs \\ %{}) do
     {:ok, source} = Catalog.create_source(Map.merge(@source_attrs, attrs))
@@ -411,7 +415,16 @@ defmodule Claptrap.Integration.CatalogProducerTest do
 
     test "uses sink config for materialization" do
       source = create_source!()
-      sink = create_sink!(%{config: %{"description" => "Custom Desc", "max_entries" => 2}})
+
+      sink =
+        create_sink!(%{
+          config: %{
+            "description" => "Custom Desc",
+            "link" => "https://example.com/custom-desc",
+            "max_entries" => 2
+          }
+        })
+
       create_subscription!(sink, ["tech"])
 
       for i <- 1..5, do: create_entry!(source, %{tags: ["tech"], title: "Entry #{i}"})
