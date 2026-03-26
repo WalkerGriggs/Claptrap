@@ -22,6 +22,10 @@ defmodule Claptrap.RSS.ParserTest do
     """
   end
 
+  defp enclosure_with_length(length) do
+    ~s(<item><title>Has enclosure</title><enclosure url="https://example.com/audio.mp3" length="#{length}" type="audio/mpeg"/></item>)
+  end
+
   # ---------------------------------------------------------------------------
   # Happy path
   # ---------------------------------------------------------------------------
@@ -418,9 +422,7 @@ defmodule Claptrap.RSS.ParserTest do
 
     test "enclosure length with trailing garbage falls back to 0" do
       xml =
-        minimal_feed(
-          "<item><title>Has enclosure</title><enclosure url=\"https://example.com/audio.mp3\" length=\"1000bytes\" type=\"audio/mpeg\"/></item>"
-        )
+        minimal_feed(enclosure_with_length("1000bytes"))
 
       assert {:ok, feed} = Parser.parse(xml)
       assert [%Item{enclosure: %Enclosure{length: 0}}] = feed.items
@@ -596,9 +598,7 @@ defmodule Claptrap.RSS.ParserTest do
 
     test "enclosure length with trailing garbage returns ParseError" do
       xml =
-        minimal_feed(
-          "<item><title>Has enclosure</title><enclosure url=\"https://example.com/audio.mp3\" length=\"1000bytes\" type=\"audio/mpeg\"/></item>"
-        )
+        minimal_feed(enclosure_with_length("1000bytes"))
 
       assert {:error, %ParseError{reason: :malformed_integer}} = Parser.parse(xml, strict: true)
     end

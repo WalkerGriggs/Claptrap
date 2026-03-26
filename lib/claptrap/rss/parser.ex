@@ -275,12 +275,17 @@ defmodule Claptrap.RSS.Parser do
   defp validate_integer_fields(_children, false), do: :ok
 
   defp validate_integer_fields(children, true) do
-    with :ok <- validate_ttl_integer(children),
-         :ok <- validate_cloud_port_integer(children),
-         :ok <- validate_skip_hours_integers(children),
-         :ok <- validate_item_enclosure_lengths(children) do
-      :ok
-    end
+    [
+      &validate_ttl_integer/1,
+      &validate_cloud_port_integer/1,
+      &validate_skip_hours_integers/1,
+      &validate_item_enclosure_lengths/1
+    ]
+    |> Enum.reduce_while(:ok, fn validator, _acc ->
+      children
+      |> validator.()
+      |> continue_or_halt()
+    end)
   end
 
   defp validate_ttl_integer(children) do
@@ -313,10 +318,10 @@ defmodule Claptrap.RSS.Parser do
         |> child_elements()
         |> Enum.filter(&(element_name(&1) == "hour"))
         |> Enum.reduce_while(:ok, fn hour, _acc ->
-          case validate_integer_value(text_content(hour), "skipHours.hour") do
-            :ok -> {:cont, :ok}
-            error -> {:halt, error}
-          end
+          hour
+          |> text_content()
+          |> validate_integer_value("skipHours.hour")
+          |> continue_or_halt()
         end)
     end
   end
@@ -325,24 +330,30 @@ defmodule Claptrap.RSS.Parser do
     children
     |> Enum.filter(&(element_name(&1) == "item"))
     |> Enum.reduce_while(:ok, fn item, _acc ->
-      case find_first(child_elements(item), "enclosure") do
-        nil ->
-          {:cont, :ok}
-
-        enclosure ->
-          case get_attribute(enclosure, "length") do
-            nil ->
-              {:cont, :ok}
-
-            raw ->
-              case validate_integer_value(raw, "item.enclosure.length") do
-                :ok -> {:cont, :ok}
-                error -> {:halt, error}
-              end
-          end
-      end
+      item
+      |> validate_item_enclosure_length()
+      |> continue_or_halt()
     end)
   end
+
+  defp validate_item_enclosure_length(item) do
+    item
+    |> child_elements()
+    |> find_first("enclosure")
+    |> validate_enclosure_length_element()
+  end
+
+  defp validate_enclosure_length_element(nil), do: :ok
+
+  defp validate_enclosure_length_element(enclosure) do
+    case get_attribute(enclosure, "length") do
+      nil -> :ok
+      raw -> validate_integer_value(raw, "item.enclosure.length")
+    end
+  end
+
+  defp continue_or_halt(:ok), do: {:cont, :ok}
+  defp continue_or_halt(error), do: {:halt, error}
 
   defp validate_integer_value(nil, field), do: malformed_integer_error(field, nil)
 
