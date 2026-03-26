@@ -4,7 +4,7 @@ defmodule Claptrap.E2E.SubscriptionsTest do
   @sink_params %{
     "type" => "rss",
     "name" => "Subscription Test Sink",
-    "config" => %{"description" => "Test feed"}
+    "config" => %{"description" => "Test feed", "link" => "https://example.com/subscriptions-test"}
   }
 
   defp create_sink(ctx, opts \\ []) do

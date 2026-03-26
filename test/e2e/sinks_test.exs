@@ -4,7 +4,10 @@ defmodule Claptrap.E2E.SinksTest do
   @valid_params %{
     "type" => "rss",
     "name" => "Test Sink",
-    "config" => %{"description" => "Test feed"}
+    "config" => %{
+      "description" => "Test feed",
+      "link" => "https://example.com/test-sink"
+    }
   }
 
   describe "POST /api/v1/sinks" do
@@ -18,7 +21,10 @@ defmodule Claptrap.E2E.SinksTest do
                "id" => id,
                "type" => "rss",
                "name" => "Test Sink",
-               "config" => %{"description" => "Test feed"}
+               "config" => %{
+                 "description" => "Test feed",
+                 "link" => "https://example.com/test-sink"
+               }
              } = body
 
       assert is_binary(id)
