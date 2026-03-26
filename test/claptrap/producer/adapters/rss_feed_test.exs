@@ -348,6 +348,29 @@ defmodule Claptrap.Producer.Adapters.RssFeedTest do
       refute xml =~ "<link>"
     end
 
+    test "omits <link> when entry url is invalid and omits <author> when blank" do
+      {:ok, source} = Catalog.create_source(@source_attrs)
+      {:ok, sink} = Catalog.create_sink(@sink_attrs)
+      {:ok, _sub} = Catalog.create_subscription(%{sink_id: sink.id, tags: ["test"]})
+
+      {:ok, _} =
+        Catalog.create_entry(%{
+          source_id: source.id,
+          external_id: "invalid-link-and-blank-author",
+          title: "Invalid Link and Blank Author",
+          url: "example.com/missing-scheme",
+          author: "   ",
+          status: "unread",
+          tags: ["test"]
+        })
+
+      assert :ok = RssFeed.materialize(sink, [])
+      {:ok, xml, _} = RssFeed.get_feed(sink.id)
+      assert xml =~ "<title>Invalid Link and Blank Author</title>"
+      refute xml =~ "<link>"
+      refute xml =~ "<author>"
+    end
+
     test "omits <author> when entry author is nil" do
       {:ok, source} = Catalog.create_source(@source_attrs)
       {:ok, sink} = Catalog.create_sink(@sink_attrs)
