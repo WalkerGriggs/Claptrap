@@ -527,6 +527,30 @@ defmodule Claptrap.RSS.ParserTest do
                Parser.parse(xml, strict: true)
     end
 
+    test "short-circuits on first malformed item pubDate" do
+      xml =
+        minimal_feed("""
+          <item>
+            <title>Valid Item</title>
+            <pubDate>Mon, 01 Jan 2024 00:00:00 GMT</pubDate>
+          </item>
+          <item>
+            <title>First Malformed</title>
+            <pubDate>not-a-date-first</pubDate>
+          </item>
+          <item>
+            <title>Second Malformed</title>
+            <pubDate>not-a-date-second</pubDate>
+          </item>
+        """)
+
+      assert {:error,
+              %ParseError{
+                reason: :malformed_date,
+                message: "malformed date: not-a-date-first"
+              }} = Parser.parse(xml, strict: true)
+    end
+
     test "valid feed parses successfully in strict mode" do
       assert {:ok, %Feed{}} = Parser.parse(minimal_feed(), strict: true)
     end
@@ -690,6 +714,31 @@ defmodule Claptrap.RSS.ParserTest do
         xml = minimal_feed("<skipHours>#{hour_xml}</skipHours>")
         assert {:ok, feed} = Parser.parse(xml)
         assert feed.skip_hours == hours
+      end
+    end
+  end
+
+  describe "property: malformed item pubDate mode behavior" do
+    property "strict rejects malformed item pubDate while lenient coerces to nil" do
+      check all(suffix <- string(:alphanumeric, min_length: 1)) do
+        raw = "INVALID-#{suffix}"
+
+        xml =
+          minimal_feed("""
+            <item>
+              <title>Bad Date Item</title>
+              <pubDate>#{raw}</pubDate>
+            </item>
+          """)
+
+        assert {:ok, lenient_feed} = Parser.parse(xml)
+        assert [lenient_item] = lenient_feed.items
+        assert lenient_item.pub_date == nil
+
+        assert {:error, %ParseError{reason: :malformed_date, message: message}} =
+                 Parser.parse(xml, strict: true)
+
+        assert message == "malformed date: #{raw}"
       end
     end
   end

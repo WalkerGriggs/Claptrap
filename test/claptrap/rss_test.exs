@@ -12,6 +12,27 @@ defmodule Claptrap.RSSTest do
         RSS.parse!("<not-rss/>")
       end
     end
+
+    test "raises ParseError in strict mode for malformed item pubDate" do
+      xml = """
+      <?xml version="1.0" encoding="UTF-8"?>
+      <rss version="2.0">
+        <channel>
+          <title>Test Feed</title>
+          <link>https://example.com</link>
+          <description>A test feed</description>
+          <item>
+            <title>Bad Date Item</title>
+            <pubDate>not-a-date</pubDate>
+          </item>
+        </channel>
+      </rss>
+      """
+
+      assert_raise ParseError, "malformed date: not-a-date", fn ->
+        RSS.parse!(xml, strict: true)
+      end
+    end
   end
 
   describe "generate!/2" do

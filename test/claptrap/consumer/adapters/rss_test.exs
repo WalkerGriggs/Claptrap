@@ -94,6 +94,17 @@ defmodule Claptrap.Consumer.Adapters.RSSTest do
       assert entry.tags == []
     end
 
+    test "keeps lenient behavior for malformed item pubDate" do
+      Req.Test.expect(RSS, fn conn ->
+        send_resp(conn, 200, malformed_item_pubdate_feed())
+      end)
+
+      assert {:ok, [entry]} = RSS.fetch(source())
+      assert entry.external_id == "guid-bad-date"
+      assert entry.title == "Bad Date Post"
+      assert entry.published_at == nil
+    end
+
     test "derives external_id from title hash when guid and link are absent" do
       Req.Test.expect(RSS, fn conn ->
         send_resp(conn, 200, no_guid_no_link_feed())
@@ -243,6 +254,23 @@ defmodule Claptrap.Consumer.Adapters.RSSTest do
       <channel>
         <title>Empty Item Feed</title>
         <item></item>
+      </channel>
+    </rss>
+    """
+  end
+
+  defp malformed_item_pubdate_feed do
+    """
+    <?xml version="1.0" encoding="UTF-8"?>
+    <rss version="2.0">
+      <channel>
+        <title>Malformed Item Date Feed</title>
+        <item>
+          <guid>guid-bad-date</guid>
+          <title>Bad Date Post</title>
+          <link>https://example.com/bad-date</link>
+          <pubDate>not-a-date</pubDate>
+        </item>
       </channel>
     </rss>
     """
