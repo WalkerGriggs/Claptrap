@@ -15,7 +15,8 @@ defmodule Claptrap.Producer.Adapter do
   - `materialize/2` handles pull-mode rendering or storage.
   - `validate_config/1` validates sink adapter configuration.
 
-  Each callback returns `:ok` on success or `{:error, reason}` on failure.
+  The delivery and validation callbacks return `:ok` on success or
+  `{:error, reason}` on failure.
   """
 
   @callback mode() :: :push | :pull
