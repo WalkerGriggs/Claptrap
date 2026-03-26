@@ -21,6 +21,6 @@ config :claptrap, :extraction,
 
 config :claptrap, Claptrap.Storage,
   backend: Claptrap.Storage.Backends.Local,
-  root_dir: Path.join(File.cwd!(), "priv/storage")
+  root_dir: Path.join(Path.expand("..", __DIR__), "priv/storage")
 
 import_config "#{config_env()}.exs"
