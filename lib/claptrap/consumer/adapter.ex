@@ -1,5 +1,30 @@
 defmodule Claptrap.Consumer.Adapter do
-  @moduledoc false
+  @moduledoc """
+  Defines the adapter contract for the Consumer subsystem.
+
+  A consumer adapter translates a source-specific protocol into the normalized
+  entry attributes consumed by `Claptrap.Catalog.create_entry/1`.
+
+  The worker model in `Claptrap.Consumer.Worker` expects adapters to expose
+  both their ingestion mode and the functions needed for that mode:
+
+    * `mode/0` declares whether the adapter is `:pull` or `:push`.
+    * `fetch/1` is used by pull-based workers.
+    * `ingest/2` is reserved for push-based ingestion entrypoints.
+    * `validate_config/1` checks source configuration before work starts.
+
+  ## Return shape and failure semantics
+
+  Adapter callbacks return either:
+
+    * `{:ok, [map()]}` with normalized entry attribute maps, or
+    * `{:error, reason}` for failures the caller may retry.
+
+  In the current implementation, `Claptrap.Consumer.Worker` retries on
+  `{:error, reason}` from `fetch/1`. Exceptions raised by adapters are not
+  rescued by the worker and therefore crash that worker process, allowing OTP
+  supervision to restart it.
+  """
 
   alias Claptrap.Catalog.Source
 

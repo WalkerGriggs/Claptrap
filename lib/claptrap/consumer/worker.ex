@@ -1,5 +1,73 @@
 defmodule Claptrap.Consumer.Worker do
-  @moduledoc false
+  @moduledoc """
+  Runs ingestion for a single source as an isolated GenServer process.
+
+  A consumer worker owns the polling lifecycle for one source. It fetches
+  source items through a type-specific adapter, persists normalized entries via
+  `Claptrap.Catalog`, and broadcasts newly inserted entries on PubSub so
+  downstream producers can route and deliver them.
+
+  The process is registered under `Claptrap.Registry` with the key
+  `{:source_worker, source_id}` and is supervised dynamically under
+  `Claptrap.Consumer.WorkerSupervisor`.
+
+  ## Lifecycle
+
+    1. Load source from the catalog.
+    2. Resolve adapter from `source.type` (currently `"rss"` only).
+    3. Validate source config with the adapter.
+    4. Schedule initial poll timer.
+    5. On each poll/retry event, call `adapter.fetch/1`.
+    6. Persist each normalized item as an entry.
+    7. Broadcast successful inserts and schedule the next poll.
+
+  ## Scheduling model
+
+  The worker uses a tokenized timer to avoid stale timer events causing
+  overlapping poll chains. Every new schedule call cancels the previous timer,
+  stores a fresh token, and only processes timer messages that match the active
+  token.
+
+  Manual polling through `poll/1` is supported and reuses the same consume path
+  as scheduled polls.
+
+  ## Retry behavior
+
+  Retry behavior is driven by adapter return values:
+
+    * `{:ok, items}` resets retry count and schedules the normal poll interval.
+    * `{:error, reason}` schedules exponential backoff retry while
+      `retry_count < max_retries`.
+    * After retries are exhausted, the worker logs an error, resets retry
+      count, and resumes the normal poll interval.
+
+  Backoff delay is `base * 2^(attempt - 1) + jitter`, capped by
+  `max_retry_delay`.
+
+  ## Persistence and broadcast semantics
+
+  For each fetched item, the worker:
+
+    * injects `source_id`
+    * defaults entry `status` to `"unread"` when missing
+    * merges source tags with item tags
+    * calls `Catalog.create_entry/1`
+
+  Failed inserts are logged and skipped. Successful inserts are collected and
+  only entries with a persisted `id` are broadcast in
+  `{:entries_ingested, source_id, entries}` on
+  `Claptrap.PubSub.topic_entries_new/0`.
+
+  After a fetch attempt completes successfully, the worker updates
+  `source.last_consumed_at` to current UTC time truncated to seconds.
+
+  ## Failure boundaries
+
+  Adapter validation and unsupported source types raise `ArgumentError` during
+  initialization. Adapter exceptions during fetch are not rescued in this
+  module; they crash this worker process and rely on OTP supervision for
+  restart.
+  """
 
   use GenServer
 
