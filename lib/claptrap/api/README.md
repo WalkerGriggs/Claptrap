@@ -37,9 +37,9 @@ Not every resource exposes full CRUD:
 | Sources       | ✓    | ✓      | ✓   | ✓      | ✓      |
 | Sinks         | ✓    | ✓      | ✓   | ✓      | ✓      |
 | Subscriptions | ✓    | ✓      | ✓   |        | ✓      |
-| Entries       | ✓    |        | ✓   | ✓      |        |
+| Entries       | ✓    | ✓      | ✓   | ✓      |        |
 
-Entries are created by the consumer pipeline, not the API.
+Entries can be created by the consumer pipeline and via the API.
 Subscriptions are immutable once created — delete and recreate
 to change.
 
