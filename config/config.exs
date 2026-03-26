@@ -8,4 +8,8 @@ config :claptrap, Claptrap.Repo,
   hostname: "localhost",
   show_sensitive_data_on_connection_error: true
 
+config :claptrap, :firecrawl,
+  api_key: nil,
+  base_url: "https://api.firecrawl.dev"
+
 import_config "#{config_env()}.exs"

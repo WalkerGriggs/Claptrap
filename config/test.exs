@@ -11,4 +11,8 @@ config :claptrap,
   api_key: "test-api-key",
   port: 0
 
+config :claptrap, :firecrawl,
+  api_key: "test-api-key",
+  base_url: "http://localhost"
+
 config :logger, level: :warning
