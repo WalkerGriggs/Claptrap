@@ -50,6 +50,12 @@ defmodule Claptrap.Storage.Backends.LocalTest do
     test "not_found for missing key", %{config: config} do
       assert {:error, :not_found} = Local.read("missing.txt", config)
     end
+
+    @tag :integration
+    test "propagates open error when key resolves to a directory", %{config: config, tmp_dir: tmp_dir} do
+      File.mkdir_p!(Path.join(tmp_dir, "a_directory"))
+      assert {:error, :eisdir} = Local.read("a_directory", config)
+    end
   end
 
   describe "delete/2" do
@@ -61,6 +67,13 @@ defmodule Claptrap.Storage.Backends.LocalTest do
 
     test "not_found for missing key", %{config: config} do
       assert {:error, :not_found} = Local.delete("ghost.txt", config)
+    end
+
+    @tag :integration
+    test "propagates error when key resolves to a directory", %{config: config, tmp_dir: tmp_dir} do
+      File.mkdir_p!(Path.join(tmp_dir, "a_directory"))
+      assert {:error, reason} = Local.delete("a_directory", config)
+      assert reason in [:eperm, :eacces]
     end
   end
 
@@ -83,6 +96,12 @@ defmodule Claptrap.Storage.Backends.LocalTest do
     test "empty dir returns empty list", %{config: config} do
       {:ok, keys} = Local.list("", config)
       assert keys == []
+    end
+
+    @tag :integration
+    test "propagates error when root_dir does not exist" do
+      config = %{root_dir: "/nonexistent_#{:erlang.unique_integer([:positive])}"}
+      assert {:error, :enoent} = Local.list("", config)
     end
   end
 
