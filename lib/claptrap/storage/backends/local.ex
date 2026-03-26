@@ -32,7 +32,8 @@ defmodule Claptrap.Storage.Backends.Local do
 
     case File.open(path, [:read, :binary]) do
       {:ok, file} ->
-        {:ok, file_stream(file)}
+        File.close(file)
+        {:ok, file_stream(path)}
 
       {:error, :enoent} ->
         {:error, :not_found}
@@ -42,9 +43,9 @@ defmodule Claptrap.Storage.Backends.Local do
     end
   end
 
-  defp file_stream(file) do
+  defp file_stream(path) do
     Stream.resource(
-      fn -> file end,
+      fn -> File.open!(path, [:read, :binary]) end,
       fn file ->
         case IO.binread(file, @chunk_size) do
           :eof -> {:halt, file}
