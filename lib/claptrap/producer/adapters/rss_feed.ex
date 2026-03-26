@@ -1,5 +1,36 @@
 defmodule Claptrap.Producer.Adapters.RssFeed do
-  @moduledoc "RSS 2.0 feed materialization adapter. Stores rendered XML in ETS."
+  @moduledoc """
+  Materializes pull-mode sink output as an RSS 2.0 feed.
+
+  This adapter implements `Claptrap.Producer.Adapter` for sinks whose type is
+  `"rss"`. It is a `:pull` adapter, so producer workers do not push batches to
+  an external endpoint. Instead, they trigger feed re-materialization.
+
+  ## Responsibilities
+
+  - Validate RSS sink configuration.
+  - Query the catalog for entries currently routed to the sink.
+  - Render those entries as RSS 2.0 XML.
+  - Store the latest rendered feed in ETS for fast read access.
+
+  ## Data source and storage
+
+  `materialize/2` reads entries using `Catalog.entries_for_sink/2`, honoring
+  `config["max_entries"]` when present, or using a default of 50 entries.
+  Rendered XML is then stored in the named ETS table `:claptrap_rss_feeds` as:
+
+      {sink_id, {xml, updated_at}}
+
+  `get_feed/1` is the read-side helper for retrieving this in-memory feed.
+
+  ## Implemented behavior
+
+  - Adapter mode is always `:pull`.
+  - `push/2` is not supported and returns `{:error, :not_supported}`.
+  - `validate_config/1` requires a `"description"` key and validates
+    `"max_entries"` when provided.
+  - XML escaping is applied to text fields to keep output well-formed.
+  """
 
   @behaviour Claptrap.Producer.Adapter
 

@@ -1,5 +1,60 @@
 defmodule Claptrap.Producer.Worker do
-  @moduledoc "GenServer per enabled sink. Handles delivery and retry."
+  @moduledoc """
+  Executes delivery work for a single sink.
+
+  `Claptrap.Producer.Worker` is started per sink and registered as
+  `{:sink_worker, sink_id}` through `Claptrap.Registry`. The router sends entry
+  batches to this process with `{:deliver, entries}` messages.
+
+  On initialization, the worker:
+
+  - loads the sink from `Claptrap.Catalog`
+  - resolves an adapter from the sink type
+  - initializes retry state
+  - seeds pull-mode sinks by calling `adapter.materialize(sink, [])`
+
+  At present, adapter resolution supports `"rss"` sinks only.
+
+  ## Delivery behavior
+
+  For each delivered batch, the worker emits a telemetry span:
+
+  - event: `[:claptrap, :producer, :delivery]`
+  - measurements: none (span timing is provided by telemetry)
+  - metadata: `sink_id`, `entry_count`, and final `status`
+
+  The adapter call path depends on adapter mode:
+
+  - `:push` -> `adapter.push/2`
+  - `:pull` -> `adapter.materialize/2`
+
+  Successful delivery resets retry tracking for new failures.
+
+  ## Retry behavior
+
+  Failed deliveries are queued and retried with exponential backoff plus jitter.
+  Queue items are `{entries, attempt}` tuples, where `attempt` starts at `0`.
+
+  Delay formula:
+
+      min(500 * 2^attempt + random(1..100), 30_000)
+
+  Retrying is driven by internal `:retry` messages. On each retry:
+
+  - success removes the batch and emits retry telemetry with `status: :ok`
+  - failure increments attempt, emits retry telemetry with `status: :error`,
+    and re-enqueues unless retry limit is reached
+
+  Batches are dropped after `@max_retries` attempts, with an error log.
+
+  Retry telemetry event:
+
+  - event: `[:claptrap, :producer, :retry]`
+  - measurements: `%{count: 1}`
+  - metadata: `sink_id`, `attempt`, `status`
+
+  `{:resource_changed, :sink, ...}` handling is currently a logging stub.
+  """
   use GenServer
   require Logger
 
