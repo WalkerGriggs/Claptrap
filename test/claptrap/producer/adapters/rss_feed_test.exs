@@ -1,5 +1,6 @@
 defmodule Claptrap.Producer.Adapters.RssFeedTest do
   use Claptrap.DataCase, async: false
+  use ExUnitProperties
 
   @moduletag :integration
   @moduletag capture_log: true
@@ -118,13 +119,72 @@ defmodule Claptrap.Producer.Adapters.RssFeedTest do
                RssFeed.validate_config(%{"description" => "A feed", "link" => "   "})
     end
 
+    test "rejects config with non-binary link" do
+      assert {:error, "link must be a non-empty string"} =
+               RssFeed.validate_config(%{"description" => "A feed", "link" => 123})
+    end
+
     test "rejects config with invalid link" do
       assert {:error, "link must be an absolute URL with scheme and host"} =
                RssFeed.validate_config(%{"description" => "A feed", "link" => "example.com/feed"})
     end
 
+    test "rejects config with scheme but missing host" do
+      for link <- ["mailto:test@example.com", "https:///path-only"] do
+        assert {:error, "link must be an absolute URL with scheme and host"} =
+                 RssFeed.validate_config(%{"description" => "A feed", "link" => link})
+      end
+    end
+
     test "rejects non-map config" do
       assert {:error, "config must be a map"} = RssFeed.validate_config("bad")
+    end
+
+    property "accepts any positive integer max_entries with valid description and link" do
+      check all(max_entries <- integer(1..1_000_000), max_runs: 50) do
+        assert :ok =
+                 RssFeed.validate_config(%{
+                   "description" => "A feed",
+                   "link" => "https://example.com/feed",
+                   "max_entries" => max_entries
+                 })
+      end
+    end
+
+    property "rejects any non-positive integer max_entries" do
+      check all(max_entries <- integer(-100_000..0), max_runs: 50) do
+        assert {:error, "max_entries must be a positive integer"} =
+                 RssFeed.validate_config(%{
+                   "description" => "A feed",
+                   "link" => "https://example.com/feed",
+                   "max_entries" => max_entries
+                 })
+      end
+    end
+
+    property "rejects non-integer max_entries values" do
+      check all(
+              max_entries <-
+                one_of([
+                  float(min: -10_000.0, max: 10_000.0),
+                  boolean(),
+                  string(:alphanumeric, min_length: 1, max_length: 40),
+                  list_of(integer(), max_length: 3),
+                  map_of(
+                    string(:alphanumeric, min_length: 1, max_length: 8),
+                    integer(),
+                    max_length: 2
+                  )
+                ]),
+              max_runs: 50
+            ) do
+        assert {:error, "max_entries must be a positive integer"} =
+                 RssFeed.validate_config(%{
+                   "description" => "A feed",
+                   "link" => "https://example.com/feed",
+                   "max_entries" => max_entries
+                 })
+      end
     end
   end
 
@@ -171,6 +231,67 @@ defmodule Claptrap.Producer.Adapters.RssFeedTest do
       channel_link = "<link>https://example.com/my-feed</link>"
       occurrences = xml |> String.split(channel_link) |> length() |> Kernel.-(1)
       assert occurrences == 1
+    end
+
+    test "trims surrounding whitespace in emitted channel link" do
+      {:ok, sink} =
+        Catalog.create_sink(%{
+          type: "rss",
+          name: "Whitespace Feed",
+          config: %{
+            "description" => "Feed with spaced link",
+            "link" => "   https://example.com/spaced-link   "
+          }
+        })
+
+      {:ok, _sub} = Catalog.create_subscription(%{sink_id: sink.id, tags: ["none"]})
+
+      assert :ok = RssFeed.materialize(sink, [])
+      {:ok, xml, _updated_at} = RssFeed.get_feed(sink.id)
+
+      assert xpath_text(xml, "/rss/channel/link") == "https://example.com/spaced-link"
+    end
+
+    property "channel link appears exactly once for any valid sink link and entry set" do
+      check all(
+              sink_slug <- string(:alphanumeric, min_length: 1, max_length: 20),
+              entry_slugs <- list_of(string(:alphanumeric, min_length: 1, max_length: 20), max_length: 5),
+              max_runs: 20
+            ) do
+        {:ok, source} = Catalog.create_source(@source_attrs)
+
+        sink_link = "https://example.com/#{sink_slug}"
+
+        {:ok, sink} =
+          Catalog.create_sink(%{
+            type: "rss",
+            name: "Property Feed #{sink_slug}",
+            config: %{
+              "description" => "Property-based channel link test",
+              "link" => sink_link
+            }
+          })
+
+        {:ok, _sub} = Catalog.create_subscription(%{sink_id: sink.id, tags: ["prop-tag"]})
+
+        Enum.each(entry_slugs, fn entry_slug ->
+          {:ok, _entry} =
+            Catalog.create_entry(%{
+              source_id: source.id,
+              external_id: "prop-#{System.unique_integer([:positive])}-#{entry_slug}",
+              title: "Entry #{entry_slug}",
+              url: "https://entries.example/#{entry_slug}",
+              status: "unread",
+              tags: ["prop-tag"]
+            })
+        end)
+
+        assert :ok = RssFeed.materialize(sink, [])
+        {:ok, xml, _updated_at} = RssFeed.get_feed(sink.id)
+
+        assert length(xpath(xml, "/rss/channel/link")) == 1
+        assert xpath_text(xml, "/rss/channel/link") == sink_link
+      end
     end
 
     test "XML contains entries in correct order (newest first)" do
@@ -321,6 +442,30 @@ defmodule Claptrap.Producer.Adapters.RssFeedTest do
   describe "get_feed/1" do
     test "returns :not_found when no feed exists" do
       assert {:error, :not_found} = RssFeed.get_feed(Ecto.UUID.generate())
+    end
+  end
+
+  defp parse_xml(xml) do
+    xml
+    |> String.to_charlist()
+    |> :xmerl_scan.string(quiet: true)
+  end
+
+  defp xpath(xml_string, path) do
+    {doc, _} = parse_xml(xml_string)
+    :xmerl_xpath.string(String.to_charlist(path), doc)
+  end
+
+  defp xpath_text(xml_string, path) do
+    case xpath(xml_string, path) do
+      [{:xmlElement, _, _, _, _, _, _, _, children, _, _, _} | _] ->
+        Enum.map_join(children, "", fn
+          {:xmlText, _, _, _, value, _} -> to_string(value)
+          _ -> ""
+        end)
+
+      _ ->
+        nil
     end
   end
 end
