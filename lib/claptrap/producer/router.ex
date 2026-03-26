@@ -1,5 +1,33 @@
 defmodule Claptrap.Producer.Router do
-  @moduledoc "Routes ingested entries to matching sink workers via tag-based subscriptions."
+  @moduledoc """
+  Routes ingested entries to sink workers using subscription tag overlap.
+
+  `Claptrap.Producer.Router` is the coordination point for producer fan-out.
+  It subscribes to the internal `entries:new` PubSub topic and receives
+  messages shaped as `{:entries_ingested, source_id, entries}`.
+
+  On startup, the router also bootstraps worker processes for all currently
+  enabled sinks by starting one `Claptrap.Producer.Worker` child per sink
+  under `Claptrap.Producer.WorkerSupervisor`.
+
+  For each ingested batch, routing works in three steps:
+
+  1. Collect all unique tags present in the batch.
+  2. Load matching subscriptions with `Catalog.subscriptions_for_tags/1`.
+  3. For each subscription, keep entries whose tags overlap the subscription
+     tags, then group by `sink_id` and deduplicate by entry id.
+
+  After grouping, the router resolves the sink worker through
+  `Claptrap.Registry` and sends `{:deliver, matched_entries}` via
+  `GenServer.cast/2`. If no worker is registered for a sink, it logs a warning
+  and drops that delivery attempt.
+
+  Notes about currently implemented behavior:
+
+  - Tag matching uses ANY semantics, not exact set equality.
+  - Batches with no tags are ignored.
+  - `{:resource_changed, :sink, ...}` handling is currently a stub that logs.
+  """
   use GenServer
   require Logger
 
