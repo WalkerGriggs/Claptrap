@@ -195,7 +195,6 @@ defmodule Claptrap.Producer.Adapters.RssFeed do
 
   defp validate_max_entries(_), do: :ok
 
-  defp rfc2822(nil), do: ""
   defp rfc2822(%DateTime{} = dt) do
     day_name = Enum.at(@day_names, Date.day_of_week(dt) - 1)
     month_name = Enum.at(@month_names, dt.month - 1)
