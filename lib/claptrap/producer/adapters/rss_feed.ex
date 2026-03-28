@@ -37,6 +37,7 @@ defmodule Claptrap.Producer.Adapters.RssFeed do
 
   alias Claptrap.Catalog
   alias Claptrap.Catalog.{Entry, Sink}
+  alias Claptrap.Producer.Adapters.RssUri
 
   @ets_table :claptrap_rss_feeds
   @default_max_entries 50
@@ -94,16 +95,18 @@ defmodule Claptrap.Producer.Adapters.RssFeed do
   defp channel_link(%Sink{}), do: ""
 
   defp build_item(%Entry{} = entry) do
-    """
-        <item>
-          <title>#{escape(entry.title || "")}</title>
-          <link>#{escape(entry.url || "")}</link>
-          <description>#{escape(entry.summary || "")}</description>
-          <author>#{escape(entry.author || "")}</author>
-          <pubDate>#{rfc2822(entry.published_at)}</pubDate>
-          <guid isPermaLink="false">#{entry.id}</guid>
-        </item>\
-    """
+    [
+      "    <item>",
+      "      <title>#{escape(entry.title || "")}</title>",
+      maybe_link_tag(entry.url),
+      "      <description>#{escape(entry.summary || "")}</description>",
+      maybe_author_tag(entry.author),
+      maybe_pub_date_tag(entry.published_at),
+      "      <guid isPermaLink=\"false\">#{entry.id}</guid>",
+      "    </item>"
+    ]
+    |> Enum.reject(&is_nil/1)
+    |> Enum.join("\n")
   end
 
   defp escape(nil), do: ""
@@ -116,6 +119,36 @@ defmodule Claptrap.Producer.Adapters.RssFeed do
     |> String.replace("\"", "&quot;")
     |> String.replace("'", "&apos;")
   end
+
+  defp maybe_link_tag(url) do
+    with value when not is_nil(value) <- present_text(url),
+         true <- RssUri.valid_with_scheme?(value) do
+      "      <link>#{escape(value)}</link>"
+    else
+      _ -> nil
+    end
+  end
+
+  defp maybe_author_tag(author) do
+    case present_text(author) do
+      nil -> nil
+      value -> "      <author>#{escape(value)}</author>"
+    end
+  end
+
+  defp maybe_pub_date_tag(%DateTime{} = dt), do: "      <pubDate>#{rfc2822(dt)}</pubDate>"
+  defp maybe_pub_date_tag(_), do: nil
+
+  defp present_text(value) when is_binary(value) do
+    value
+    |> String.trim()
+    |> case do
+      "" -> nil
+      text -> text
+    end
+  end
+
+  defp present_text(_), do: nil
 
   @day_names ~w(Mon Tue Wed Thu Fri Sat Sun)
   @month_names ~w(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec)
@@ -161,8 +194,6 @@ defmodule Claptrap.Producer.Adapters.RssFeed do
     do: {:error, "max_entries must be a positive integer"}
 
   defp validate_max_entries(_), do: :ok
-
-  defp rfc2822(nil), do: ""
 
   defp rfc2822(%DateTime{} = dt) do
     day_name = Enum.at(@day_names, Date.day_of_week(dt) - 1)
