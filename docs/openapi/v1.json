@@ -2,6 +2,105 @@
   "components": {
     "responses": {},
     "schemas": {
+      "ArtifactResponse": {
+        "properties": {
+          "byte_size": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "content": {
+            "nullable": true,
+            "type": "string"
+          },
+          "content_type": {
+            "nullable": true,
+            "type": "string"
+          },
+          "entry_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "extractor": {
+            "type": "string"
+          },
+          "format": {
+            "enum": [
+              "markdown",
+              "html",
+              "pdf"
+            ],
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "inserted_at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "metadata": {
+            "nullable": true,
+            "type": "object"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "entry_id",
+          "format",
+          "extractor",
+          "inserted_at",
+          "updated_at"
+        ],
+        "title": "ArtifactResponse",
+        "type": "object"
+      },
+      "CreateArtifactRequest": {
+        "properties": {
+          "byte_size": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "content": {
+            "nullable": true,
+            "type": "string"
+          },
+          "content_type": {
+            "nullable": true,
+            "type": "string"
+          },
+          "entry_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "extractor": {
+            "type": "string"
+          },
+          "format": {
+            "enum": [
+              "markdown",
+              "html",
+              "pdf"
+            ],
+            "type": "string"
+          },
+          "metadata": {
+            "nullable": true,
+            "type": "object"
+          }
+        },
+        "required": [
+          "entry_id",
+          "format",
+          "extractor"
+        ],
+        "title": "CreateArtifactRequest",
+        "type": "object"
+      },
       "CreateEntryRequest": {
         "properties": {
           "author": {
@@ -446,10 +545,279 @@
   "info": {
     "description": "Content ingestion and delivery API",
     "title": "Claptrap",
-    "version": "0.1.0"
+    "version": "0.2.0"
   },
   "openapi": "3.0.0",
   "paths": {
+    "/artifacts": {
+      "get": {
+        "callbacks": {},
+        "deprecated": false,
+        "operationId": "listArtifacts",
+        "parameters": [
+          {
+            "description": "Number of items per page",
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 25,
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Cursor token for next page",
+            "in": "query",
+            "name": "page_token",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Filter by entry ID",
+            "in": "query",
+            "name": "entry_id",
+            "required": false,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "properties": {
+                          "byte_size": {
+                            "nullable": true,
+                            "type": "integer"
+                          },
+                          "content": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "content_type": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "entry_id": {
+                            "format": "uuid",
+                            "type": "string"
+                          },
+                          "extractor": {
+                            "type": "string"
+                          },
+                          "format": {
+                            "enum": [
+                              "markdown",
+                              "html",
+                              "pdf"
+                            ],
+                            "type": "string"
+                          },
+                          "id": {
+                            "format": "uuid",
+                            "type": "string"
+                          },
+                          "inserted_at": {
+                            "format": "date-time",
+                            "type": "string"
+                          },
+                          "metadata": {
+                            "nullable": true,
+                            "type": "object"
+                          },
+                          "updated_at": {
+                            "format": "date-time",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "entry_id",
+                          "format",
+                          "extractor",
+                          "inserted_at",
+                          "updated_at"
+                        ],
+                        "title": "ArtifactResponse",
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "next_page_token": {
+                      "description": "Cursor for next page; absent on last page",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Paginated list of artifacts"
+          }
+        },
+        "summary": "List artifacts",
+        "tags": [
+          "Artifacts"
+        ]
+      },
+      "post": {
+        "callbacks": {},
+        "deprecated": false,
+        "operationId": "createArtifact",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateArtifactRequest"
+              }
+            }
+          },
+          "description": "Artifact to create",
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArtifactResponse"
+                }
+              }
+            },
+            "description": "Created artifact"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            },
+            "description": "Validation error"
+          }
+        },
+        "summary": "Create an artifact",
+        "tags": [
+          "Artifacts"
+        ]
+      }
+    },
+    "/artifacts/{id}": {
+      "delete": {
+        "callbacks": {},
+        "deprecated": false,
+        "operationId": "deleteArtifact",
+        "parameters": [
+          {
+            "description": "Artifact ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Artifact deleted"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid ID format"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Artifact not found"
+          }
+        },
+        "summary": "Delete an artifact",
+        "tags": [
+          "Artifacts"
+        ]
+      },
+      "get": {
+        "callbacks": {},
+        "deprecated": false,
+        "operationId": "getArtifact",
+        "parameters": [
+          {
+            "description": "Artifact ID",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArtifactResponse"
+                }
+              }
+            },
+            "description": "Artifact found"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Invalid ID format"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "description": "Artifact not found"
+          }
+        },
+        "summary": "Get an artifact",
+        "tags": [
+          "Artifacts"
+        ]
+      }
+    },
     "/entries": {
       "get": {
         "callbacks": {},
