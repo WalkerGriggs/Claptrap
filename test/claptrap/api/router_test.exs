@@ -37,7 +37,7 @@ defmodule Claptrap.API.RouterTest do
 
       body = Jason.decode!(conn.resp_body)
       assert body["info"]["title"] == "Claptrap"
-      assert body["info"]["version"] == "0.1.0"
+      assert body["info"]["version"] == "0.2.0"
       assert String.starts_with?(body["openapi"], "3.")
     end
   end
