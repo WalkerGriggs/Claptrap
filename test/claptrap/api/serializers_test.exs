@@ -3,12 +3,13 @@ defmodule Claptrap.API.SerializersTest do
   use ExUnitProperties
 
   alias Claptrap.API.Serializers
-  alias Claptrap.Catalog.{Entry, Sink, Source, Subscription}
+  alias Claptrap.Catalog.{Artifact, Entry, Sink, Source, Subscription}
 
   @source_keys ~w(id type name config enabled tags last_consumed_at inserted_at updated_at)a
   @sink_keys ~w(id type name config enabled inserted_at updated_at)a
   @entry_keys ~w(id external_id title summary url author published_at status metadata tags source_id inserted_at updated_at)a
   @subscription_keys ~w(id sink_id tags inserted_at updated_at)a
+  @artifact_keys ~w(id entry_id format content content_type byte_size extractor metadata inserted_at updated_at)a
 
   # -- Generators --------------------------------------------------------
 
@@ -143,6 +144,34 @@ defmodule Claptrap.API.SerializersTest do
     end
   end
 
+  defp artifact_gen do
+    gen all(
+          id <- uuid_gen(),
+          entry_id <- uuid_gen(),
+          format <- member_of(["markdown", "html", "pdf"]),
+          content <- maybe(string(:alphanumeric, min_length: 1, max_length: 200)),
+          content_type <- maybe(string(:alphanumeric, min_length: 1, max_length: 50)),
+          byte_size <- maybe(positive_integer()),
+          extractor <- string(:alphanumeric, min_length: 1, max_length: 50),
+          metadata <- maybe(map_gen()),
+          inserted_at <- datetime_gen(),
+          updated_at <- datetime_gen()
+        ) do
+      %Artifact{
+        id: id,
+        entry_id: entry_id,
+        format: format,
+        content: content,
+        content_type: content_type,
+        byte_size: byte_size,
+        extractor: extractor,
+        metadata: metadata,
+        inserted_at: inserted_at,
+        updated_at: updated_at
+      }
+    end
+  end
+
   # -- Properties --------------------------------------------------------
 
   describe "Source serialization" do
@@ -230,6 +259,25 @@ defmodule Claptrap.API.SerializersTest do
 
         for key <- @subscription_keys do
           assert Map.fetch!(result, key) == Map.fetch!(subscription, key)
+        end
+      end
+    end
+  end
+
+  describe "Artifact serialization" do
+    property "produces exactly the expected keys" do
+      check all(artifact <- artifact_gen()) do
+        result = Serializers.serialize(artifact)
+        assert Map.keys(result) |> Enum.sort() == Enum.sort(@artifact_keys)
+      end
+    end
+
+    property "preserves all field values" do
+      check all(artifact <- artifact_gen()) do
+        result = Serializers.serialize(artifact)
+
+        for key <- @artifact_keys do
+          assert Map.fetch!(result, key) == Map.fetch!(artifact, key)
         end
       end
     end
