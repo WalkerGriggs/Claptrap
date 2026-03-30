@@ -50,6 +50,7 @@ defmodule Claptrap.MixProject do
       # Database
       {:ecto_sql, "~> 3.12"},
       {:postgrex, "~> 0.19"},
+      {:castore, "~> 1.0"},
       {:paginator, "~> 1.2"},
       # Override: paginator pins plug_crypto ~> 1.2
       # but only uses non_executable_binary_to_term/2

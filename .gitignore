@@ -11,3 +11,4 @@ claptrap-*.tar
 /config/*.secret.exs
 .elixir_ls/
 /priv/plts/
+fly.toml
