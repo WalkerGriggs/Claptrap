@@ -10,7 +10,7 @@ defmodule Claptrap.API.Serializers do
   serialized output.
   """
 
-  alias Claptrap.Catalog.{Entry, Sink, Source, Subscription}
+  alias Claptrap.Catalog.{Artifact, Entry, Sink, Source, Subscription}
 
   def serialize(%Source{} = s) do
     %{
@@ -35,6 +35,21 @@ defmodule Claptrap.API.Serializers do
       enabled: s.enabled,
       inserted_at: s.inserted_at,
       updated_at: s.updated_at
+    }
+  end
+
+  def serialize(%Artifact{} = a) do
+    %{
+      id: a.id,
+      entry_id: a.entry_id,
+      format: a.format,
+      content: a.content,
+      content_type: a.content_type,
+      byte_size: a.byte_size,
+      extractor: a.extractor,
+      metadata: a.metadata,
+      inserted_at: a.inserted_at,
+      updated_at: a.updated_at
     }
   end
 
