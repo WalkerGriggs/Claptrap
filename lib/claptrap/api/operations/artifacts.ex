@@ -7,7 +7,7 @@ defmodule Claptrap.API.Operations.Artifacts do
   and validation or lookup errors for write and read paths.
   """
 
-  alias OpenApiSpex.{Operation, PathItem, Schema}
+  alias OpenApiSpex.{Operation, PathItem, Response, Schema}
 
   alias Claptrap.API.Schemas.{
     ArtifactResponse,
@@ -125,12 +125,7 @@ defmodule Claptrap.API.Operations.Artifacts do
       operationId: "deleteArtifact",
       parameters: [id_parameter()],
       responses: %{
-        204 =>
-          Operation.response(
-            "Artifact deleted",
-            nil,
-            nil
-          ),
+        204 => %Response{description: "Artifact deleted"},
         400 =>
           Operation.response(
             "Invalid ID format",
