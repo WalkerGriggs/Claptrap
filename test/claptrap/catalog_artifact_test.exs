@@ -98,6 +98,44 @@ defmodule Claptrap.CatalogArtifactTest do
       {:ok, _} = Catalog.create_artifact(artifact_attrs(entry))
       assert length(Catalog.list_artifacts()) == 1
     end
+
+    test "paginates results", %{entry: entry} do
+      for fmt <- ["markdown", "html", "pdf"] do
+        {:ok, _} = Catalog.create_artifact(%{artifact_attrs(entry) | format: fmt})
+      end
+
+      page1 = Catalog.list_artifacts(paginate: true, limit: 2)
+      assert length(page1.entries) == 2
+      assert page1.metadata.after
+
+      page2 = Catalog.list_artifacts(paginate: true, limit: 2, after: page1.metadata.after)
+      assert length(page2.entries) == 1
+    end
+
+    test "paginates with entry_id filter", %{entry: entry} do
+      for fmt <- ["markdown", "html"] do
+        {:ok, _} = Catalog.create_artifact(%{artifact_attrs(entry) | format: fmt})
+      end
+
+      {:ok, other_entry} =
+        Catalog.create_entry(%{
+          source_id: entry.source_id,
+          external_id: "ext-other",
+          title: "Other",
+          status: "unread"
+        })
+
+      {:ok, _} =
+        Catalog.create_artifact(%{
+          entry_id: other_entry.id,
+          format: "pdf",
+          extractor: "readability"
+        })
+
+      page = Catalog.list_artifacts(paginate: true, limit: 10, entry_id: entry.id)
+      assert length(page.entries) == 2
+      assert Enum.all?(page.entries, &(&1.entry_id == entry.id))
+    end
   end
 
   describe "get_artifact!/1" do
