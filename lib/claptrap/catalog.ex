@@ -160,7 +160,7 @@ defmodule Claptrap.Catalog do
   def list_artifacts(opts \\ []) do
     Artifact
     |> maybe_filter_by(:entry_id, opts[:entry_id])
-    |> Repo.all()
+    |> list(opts, inserted_at: :desc, id: :desc)
   end
 
   def get_artifact!(id), do: Repo.get!(Artifact, id)
