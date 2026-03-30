@@ -17,7 +17,7 @@ defmodule Claptrap.API.ApiSpec do
     %OpenApi{
       info: %Info{
         title: "Claptrap",
-        version: "0.1.0",
+        version: "0.2.0",
         description: "Content ingestion and delivery API"
       },
       servers: [%Server{url: "/api/v1"}],
@@ -26,6 +26,7 @@ defmodule Claptrap.API.ApiSpec do
         |> Map.merge(Operations.Subscriptions.paths())
         |> Map.merge(Operations.Entries.paths())
         |> Map.merge(Operations.Sinks.paths())
+        |> Map.merge(Operations.Artifacts.paths())
     }
     |> OpenApiSpex.resolve_schema_modules()
   end

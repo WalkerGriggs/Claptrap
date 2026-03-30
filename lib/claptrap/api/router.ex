@@ -42,6 +42,7 @@ defmodule Claptrap.API.Router do
   forward("/api/v1/sinks", to: Claptrap.API.Handlers.Sinks)
   forward("/api/v1/subscriptions", to: Claptrap.API.Handlers.Subscriptions)
   forward("/api/v1/entries", to: Claptrap.API.Handlers.Entries)
+  forward("/api/v1/artifacts", to: Claptrap.API.Handlers.Artifacts)
 
   match _ do
     send_resp(conn, 404, Jason.encode!(%{error: "not found"}))
