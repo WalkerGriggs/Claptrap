@@ -145,6 +145,20 @@ defmodule Claptrap.API.Handlers.ArtifactsTest do
       assert resp["errors"]
     end
 
+    test "returns 422 with nonexistent entry_id" do
+      body = %{
+        "entry_id" => Ecto.UUID.generate(),
+        "format" => "markdown",
+        "extractor" => "test"
+      }
+
+      conn = call(:post, "/api/v1/artifacts", body)
+      assert conn.status == 422
+
+      resp = Jason.decode!(conn.resp_body)
+      assert resp["errors"]["entry_id"]
+    end
+
     test "returns 422 with invalid format value" do
       {:ok, source} = create_source()
       {:ok, entry} = create_entry(source.id)
